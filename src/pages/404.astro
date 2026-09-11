@@ -3,6 +3,12 @@ import Layout from '../layouts/Layout.astro';
 ---
 
 <Layout title="404 - HendoCode" description="Page not found">
-  <h1>404 — page not found</h1>
-  <p><a href="/">← Back to home</a></p>
+  <header class="page-header">
+    <div class="eyebrow">Error 404</div>
+    <h1>Page not found</h1>
+  </header>
+
+  <p>That page isn't here. It may have moved, or the link may be wrong.</p>
+
+  <p><a href="/" class="btn-index">← Back to home</a></p>
 </Layout>
