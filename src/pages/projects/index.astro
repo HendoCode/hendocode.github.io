@@ -1,0 +1,23 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import { getCollection } from 'astro:content';
+
+const projects = await getCollection('projects');
+
+// Sort projects by order
+const sortedProjects = projects.sort((a, b) => a.data.order - b.data.order);
+---
+
+<Layout title="Projects - HendoCode" description="Selected projects by Stephen Henderson">
+  <h1>Projects</h1>
+
+  {sortedProjects.map(project => (
+    <div class="project-item">
+      <h3 class="project-title">{project.data.title}</h3>
+      <p class="project-description">{project.data.description}</p>
+      {project.data.url && (
+        <a href={project.data.url} class="project-url">View project →</a>
+      )}
+    </div>
+  ))}
+</Layout>

@@ -1,0 +1,16 @@
+# Dependencies
+/node_modules
+/.astro
+/dist
+
+# Local development
+.env
+.DS_Store
+
+# OS generated
+*.swp
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
