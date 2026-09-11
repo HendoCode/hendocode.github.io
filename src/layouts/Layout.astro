@@ -2,10 +2,25 @@
 export interface Props {
   title?: string;
   description?: string;
+  /** Short uppercase breadcrumb shown after the wordmark in the nav, e.g. "Posts". */
+  section?: string;
 }
 
-const { title = 'HendoCode', description = 'Stephen Henderson\'s personal technical blog and portfolio' } = Astro.props;
+const {
+  title = 'HendoCode',
+  description = 'Stephen Henderson\'s personal technical blog and portfolio',
+  section = '',
+} = Astro.props;
+
 const canonicalUrl = new URL(Astro.url.pathname, 'https://hendocode.github.io');
+const path = Astro.url.pathname;
+const isActive = (href: string) => (href === '/' ? path === '/' : path.startsWith(href));
+const navItems = [
+  { href: '/', label: 'Home' },
+  { href: '/posts/', label: 'Posts' },
+  { href: '/projects/', label: 'Projects' },
+  { href: '/about/', label: 'About' },
+];
 ---
 <!DOCTYPE html>
 <html lang="en">
@@ -19,241 +34,602 @@ const canonicalUrl = new URL(Astro.url.pathname, 'https://hendocode.github.io');
     <meta property="og:url" content={canonicalUrl} />
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@300;400;500;600&display=swap" rel="stylesheet">
-    <style>
+    <!-- Brand faces, verbatim from contact-center-ai/blogs/template.html:
+         Josefin Sans hairline(300)/bold(700) for the wordmark + all UI type,
+         JetBrains Mono for code. Body copy is Georgia (a system serif). -->
+    <link href="https://fonts.googleapis.com/css2?family=Josefin+Sans:wght@300;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <!--
+      is:global is required, not cosmetic: <slot /> content is rendered by the page
+      component and therefore never receives this Layout's data-astro-cid scope id.
+      Scoped selectors here would silently fail to reach any page or markdown content.
+    -->
+    <style is:global>
+      /* ══════════════════════════════════════════════════════════════
+         HendoCode brand palette
+         Primitive values lifted verbatim from the reference implementation:
+         github.com/HendoCode/contact-center-ai → blogs/template.html
+         (comment there: "HendoCode brand palette (from logo explorations
+         tile 12)"). blogs/index.html carries an identical block, and the
+         deployed page at hendocode.com/contact-center-ai/ is byte-identical
+         to that index.html, so the repo is the authoritative source.
+         ══════════════════════════════════════════════════════════════ */
       :root {
-        /* Light mode */
-        --bg: #ffffff;
-        --bg-secondary: #f8fafc;
-        --text: #1e293b;
-        --text-muted: #64748b;
-        --accent: #2563eb;
-        --accent-hover: #1d4ed8;
-        --border: #e2e8f0;
-        --code-bg: #f1f5f9;
+        /* ── brand primitives (reference, unchanged) ── */
+        --slate: #2E4A5F;
+        --slate-d: #1e3245;
+        --slate-l: #3d5f78;
+        --slate-ll: #4a7090;
+        --cream: #F0EDCF;
+        --amber: #E8A44A;
+        --amber-d: #c4852a;
+        --amber-l: #f0bb72;
+        --muted: #7FA8C0;
+        --bg-warm: #f5f2ea;
+
+        /* ── faces + measure (reference, except --width) ── */
+        --font-brand: 'Josefin Sans', sans-serif;
+        --font-ui: 'Josefin Sans', sans-serif;
+        --font-body: Georgia, 'Times New Roman', Times, serif;
+        --font-mono: 'JetBrains Mono', 'Fira Code', 'Cascadia Code', 'Courier New', monospace;
+        /* Reference uses 720px; this site's brief mandates a 680px measure. */
+        --width: 680px;
       }
 
+      /* ── semantic roles: LIGHT (values as the reference assigns them) ── */
+      :root,
+      :root[data-theme="light"] {
+        --nav: var(--slate);
+        --nav-text: var(--cream);
+        --nav-section: var(--muted);
+        --nav-link: rgba(255, 255, 255, 0.62);
+        --nav-faint: rgba(255, 255, 255, 0.35);
+        --nav-hairline: rgba(255, 255, 255, 0.06);
+
+        --accent: var(--amber);
+        --accent-strong: var(--amber-d);
+        --accent-hover: var(--slate);
+
+        --bg: #ffffff;
+        --bg-secondary: #f8f6f0;
+        --surface: #f8f6f0;
+        --border: #ddd9cc;
+
+        --text: var(--slate-d);
+        --text-muted: var(--slate-ll);
+        --heading: var(--slate);
+        --heading-sub: var(--slate-l);
+        --heading-faint: var(--slate-ll);
+        --strong: var(--slate);
+
+        --code-bg: var(--slate-d);
+        --code-text: var(--cream);
+        --code-border: rgba(255, 255, 255, 0.04);
+
+        --tag-bg: #fef7e8;
+        --tag-text: var(--amber-d);
+        --tag-border: rgba(196, 133, 42, 0.15);
+
+        --th-bg: var(--slate);
+        --th-text: var(--cream);
+
+        --btn-border: var(--slate);
+        --btn-text: var(--slate);
+        --btn-hover-bg: var(--slate);
+        --btn-hover-text: var(--cream);
+
+        --footer-bg: var(--slate);
+        --footer-text: rgba(255, 255, 255, 0.4);
+        --footer-link: rgba(255, 255, 255, 0.4);
+
+        color-scheme: light;
+      }
+
+      /* ── semantic roles: DARK ──
+         The reference ships light-only, so this is the extension half of
+         "match and extend": same brand hues, surfaces inverted. Page ground
+         sits below --slate-d, surfaces step up to --slate-d, borders use
+         --slate, body copy uses the brand cream, and links/accents shift to
+         the lighter amber ramp (--amber-l) to hold contrast on dark. */
       @media (prefers-color-scheme: dark) {
-        :root {
-          /* Dark mode */
-          --bg: #0f172a;
-          --bg-secondary: #1e293b;
-          --text: #e2e8f0;
-          --text-muted: #94a3b8;
-          --accent: #60a5fa;
-          --accent-hover: #93c5fd;
-          --border: #334155;
-          --code-bg: #1e293b;
+        :root:not([data-theme="light"]) {
+          --nav: #101c26;
+          --nav-text: var(--cream);
+          --nav-section: var(--muted);
+          --nav-link: rgba(240, 237, 207, 0.66);
+          --nav-faint: rgba(240, 237, 207, 0.4);
+          --nav-hairline: rgba(240, 237, 207, 0.08);
+
+          --accent: var(--amber);
+          --accent-strong: var(--amber-l);
+          --accent-hover: var(--cream);
+
+          --bg: #16232e;
+          --bg-secondary: #1e3245;
+          --surface: #1e3245;
+          --border: var(--slate);
+
+          --text: #e9e6d5;
+          --text-muted: var(--muted);
+          --heading: var(--cream);
+          --heading-sub: var(--muted);
+          --heading-faint: var(--slate-ll);
+          --strong: var(--cream);
+
+          --code-bg: #101c26;
+          --code-text: var(--cream);
+          --code-border: rgba(240, 237, 207, 0.08);
+
+          --tag-bg: rgba(232, 164, 74, 0.12);
+          --tag-text: var(--amber-l);
+          --tag-border: rgba(232, 164, 74, 0.22);
+
+          --th-bg: var(--slate-l);
+          --th-text: var(--cream);
+
+          --btn-border: var(--slate-ll);
+          --btn-text: var(--cream);
+          --btn-hover-bg: var(--slate-ll);
+          --btn-hover-text: #16232e;
+
+          --footer-bg: #101c26;
+          --footer-text: rgba(240, 237, 207, 0.45);
+          --footer-link: rgba(240, 237, 207, 0.45);
+
+          color-scheme: dark;
         }
       }
 
-      [data-theme="dark"] {
-        --bg: #0f172a;
-        --bg-secondary: #1e293b;
-        --text: #e2e8f0;
-        --text-muted: #94a3b8;
-        --accent: #60a5fa;
-        --accent-hover: #93c5fd;
-        --border: #334155;
-        --code-bg: #1e293b;
+      :root[data-theme="dark"] {
+        --nav: #101c26;
+        --nav-text: var(--cream);
+        --nav-section: var(--muted);
+        --nav-link: rgba(240, 237, 207, 0.66);
+        --nav-faint: rgba(240, 237, 207, 0.4);
+        --nav-hairline: rgba(240, 237, 207, 0.08);
+
+        --accent: var(--amber);
+        --accent-strong: var(--amber-l);
+        --accent-hover: var(--cream);
+
+        --bg: #16232e;
+        --bg-secondary: #1e3245;
+        --surface: #1e3245;
+        --border: var(--slate);
+
+        --text: #e9e6d5;
+        --text-muted: var(--muted);
+        --heading: var(--cream);
+        --heading-sub: var(--muted);
+        --heading-faint: var(--slate-ll);
+        --strong: var(--cream);
+
+        --code-bg: #101c26;
+        --code-text: var(--cream);
+        --code-border: rgba(240, 237, 207, 0.08);
+
+        --tag-bg: rgba(232, 164, 74, 0.12);
+        --tag-text: var(--amber-l);
+        --tag-border: rgba(232, 164, 74, 0.22);
+
+        --th-bg: var(--slate-l);
+        --th-text: var(--cream);
+
+        --btn-border: var(--slate-ll);
+        --btn-text: var(--cream);
+        --btn-hover-bg: var(--slate-ll);
+        --btn-hover-text: #16232e;
+
+        --footer-bg: #101c26;
+        --footer-text: rgba(240, 237, 207, 0.45);
+        --footer-link: rgba(240, 237, 207, 0.45);
+
+        color-scheme: dark;
       }
 
-      [data-theme="light"] {
-        --bg: #ffffff;
-        --bg-secondary: #f8fafc;
-        --text: #1e293b;
-        --text-muted: #64748b;
-        --accent: #2563eb;
-        --accent-hover: #1d4ed8;
-        --border: #e2e8f0;
-        --code-bg: #f1f5f9;
-      }
-
-      * {
+      *, *::before, *::after {
+        box-sizing: border-box;
         margin: 0;
         padding: 0;
-        box-sizing: border-box;
+      }
+
+      /* Colour-mode fade is the only motion on this site, per the brief.
+         It is scoped to the theme-switched chrome surfaces only — never to
+         :hover, so hover feedback stays instantaneous.
+         (The reference's `scroll-behavior: smooth` and its 0.15s hover
+         transitions are deliberately not carried over.) */
+      body,
+      nav.top-nav,
+      footer.site-footer {
+        transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
       }
 
       body {
+        font-family: var(--font-body);
+        font-size: 1.125rem;
+        line-height: 1.8;
+        color: var(--text);
         background-color: var(--bg);
-        color: var(--text);
-        font-family: 'Inter', sans-serif;
-        line-height: 1.7;
-        font-size: 16px;
-        transition: background-color 0.3s ease, color 0.3s ease;
       }
 
-      .container {
-        max-width: 680px;
+      /* ── Top navigation bar (reference `nav.top-nav`) ── */
+      nav.top-nav {
+        background: var(--nav);
+        padding: 0 1.25rem;
+        position: sticky;
+        top: 0;
+        z-index: 100;
+        border-bottom: 1px solid var(--nav-hairline);
+      }
+
+      .nav-inner {
+        max-width: var(--width);
         margin: 0 auto;
-        padding: 0 1rem;
-      }
-
-      h1, h2, h3, h4, h5, h6 {
-        font-weight: 600;
-        line-height: 1.3;
-        margin-bottom: 0.5rem;
-      }
-
-      h1 {
-        font-size: 2rem;
-      }
-
-      h2 {
-        font-size: 1.5rem;
-      }
-
-      h3 {
-        font-size: 1.25rem;
-      }
-
-      p {
-        margin-bottom: 1rem;
-      }
-
-      a {
-        color: var(--accent);
-        text-decoration: none;
-      }
-
-      a:hover {
-        color: var(--accent-hover);
-      }
-
-      code {
-        font-family: 'JetBrains Mono', monospace;
-        font-size: 0.875rem;
-        background-color: var(--code-bg);
-        padding: 0.2em 0.4em;
-        border-radius: 4px;
-      }
-
-      pre {
-        overflow-x: auto;
-        background-color: var(--code-bg);
-        padding: 1rem;
-        border-radius: 4px;
-        margin-bottom: 1rem;
-      }
-
-      pre code {
-        background: none;
-        padding: 0;
-      }
-
-      .nav {
         display: flex;
-        justify-content: space-between;
         align-items: center;
-        padding: 1rem 0;
-        margin-bottom: 2rem;
-        border-bottom: 1px solid var(--border);
+        justify-content: space-between;
+        flex-wrap: wrap;
+        gap: 0.25rem 1rem;
+        min-height: 56px;
+        padding: 0.5rem 0;
       }
 
-      .nav-brand {
-        font-weight: 700;
-        color: var(--text);
-      }
-
+      .nav-left,
       .nav-links {
         display: flex;
         align-items: center;
-        gap: 1.5rem;
+      }
+
+      .nav-left {
+        gap: 0.65rem;
+        min-width: 0;
+      }
+
+      .nav-links {
+        gap: 1.1rem;
         flex-wrap: wrap;
       }
 
-      .nav-link {
-        color: var(--text);
-        font-weight: 500;
+      .nav-brand {
+        display: inline-flex;
+        align-items: baseline;
+        text-decoration: none;
       }
 
-      .nav-link:hover {
+      /* The wordmark: reference "tile-12 hairline/bold treatment" — a
+         light-weight cream "Hendo" set against a bold amber "Code".
+         There is no image asset in the reference repo; the mark is pure type.
+         The reference's .nav-brand declares `gap: 0.75rem`, which splits the
+         two spans into "HENDO  CODE" in the nav while its footer mark stays
+         joined; joined is the actual brand name and the footer treatment, so
+         both instances here are joined. */
+      .brand-hendo {
+        font-family: var(--font-brand);
+        font-weight: 300;
+        font-size: 1.1rem;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: var(--nav-text);
+        line-height: 1;
+      }
+
+      .brand-code {
+        font-family: var(--font-brand);
+        font-weight: 700;
+        font-size: 1.1rem;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
         color: var(--accent);
+        line-height: 1;
+      }
+
+      .nav-divider {
+        color: rgba(255, 255, 255, 0.2);
+        font-family: var(--font-brand);
+        font-weight: 300;
+        font-size: 0.9rem;
+      }
+
+      .nav-section {
+        font-family: var(--font-brand);
+        font-weight: 300;
+        font-size: 0.75rem;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        color: var(--nav-section);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+
+      .nav-link {
+        font-family: var(--font-brand);
+        font-weight: 300;
+        font-size: 0.75rem;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: var(--nav-link);
+        text-decoration: none;
+        white-space: nowrap;
+      }
+
+      .nav-link:hover,
+      .nav-link:focus-visible {
+        color: var(--accent);
+      }
+
+      .nav-link[aria-current="page"] {
+        color: var(--accent);
+        font-weight: 700;
+      }
+
+      /* Reference `.nav-gh` — the dimmest item in the bar. */
+      .nav-gh {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.35rem;
+        color: var(--nav-faint);
+        text-decoration: none;
+        font-family: var(--font-brand);
+        font-weight: 300;
+        font-size: 0.75rem;
+        letter-spacing: 0.06em;
+      }
+
+      .nav-gh:hover,
+      .nav-gh:focus-visible {
+        color: var(--accent);
+      }
+
+      .nav-gh svg {
+        display: block;
       }
 
       .theme-toggle {
         background: none;
         border: none;
         cursor: pointer;
-        color: var(--text);
-        font-size: 1.2rem;
+        color: var(--nav-faint);
         padding: 0.25rem;
-        border-radius: 4px;
         line-height: 1;
+        display: inline-flex;
       }
 
-      .theme-toggle:hover {
-        background-color: var(--bg-secondary);
+      .theme-toggle:hover,
+      .theme-toggle:focus-visible {
+        color: var(--accent);
       }
 
       .theme-toggle svg {
         display: block;
       }
 
-      .post-date {
-        color: var(--text-muted);
-        font-size: 0.9rem;
+      /* ── Article container (reference `article`, at the brief's 680px) ── */
+      .container {
+        max-width: var(--width);
+        margin: 0 auto;
+        padding: 3.5rem 1.25rem 4rem;
       }
 
-      .tag-chip {
-        background-color: var(--bg-secondary);
-        color: var(--text-muted);
-        padding: 0.25rem 0.5rem;
-        border-radius: 9999px;
+      /* ── Type hierarchy (reference `.post-header` / `.post-body`) ── */
+      h1, h2, h3, h4, h5, h6 {
+        font-family: var(--font-brand);
+        font-weight: 700;
+        text-transform: uppercase;
+        line-height: 1.15;
+      }
+
+      h1 {
+        font-size: 2.75rem;
+        line-height: 1.05;
+        letter-spacing: 0.01em;
+        color: var(--heading);
+        margin-bottom: 0.75rem;
+      }
+
+      h2 {
+        font-size: 1.125rem;
+        letter-spacing: 0.1em;
+        color: var(--heading);
+        margin: 3rem 0 1rem;
+      }
+
+      h3 {
+        font-size: 0.875rem;
+        letter-spacing: 0.1em;
+        color: var(--heading-sub);
+        margin: 2rem 0 0.75rem;
+      }
+
+      h4 {
         font-size: 0.8rem;
-        margin-right: 0.5rem;
-        margin-bottom: 0.5rem;
-        display: inline-block;
+        letter-spacing: 0.08em;
+        color: var(--heading-faint);
+        margin: 1.5rem 0 0.5rem;
       }
 
-      a.tag-chip {
-        color: var(--text-muted);
+      p {
+        margin-bottom: 1.5rem;
       }
 
-      a.tag-chip:hover {
+      a {
+        color: var(--accent-strong);
+        text-decoration: underline;
+        text-underline-offset: 3px;
+      }
+
+      a:hover,
+      a:focus-visible {
+        color: var(--accent-hover);
+      }
+
+      strong {
+        color: var(--strong);
+        font-weight: 700;
+      }
+
+      /* ── Page header: eyebrow + title + amber rule (reference `.post-header`) ── */
+      .eyebrow {
+        font-family: var(--font-brand);
+        font-weight: 300;
+        font-size: 0.6875rem;
+        letter-spacing: 0.18em;
+        text-transform: uppercase;
         color: var(--accent);
-      }
-
-      .series-nav {
-        margin-top: 2rem;
-        padding-top: 1rem;
-        border-top: 1px solid var(--border);
-      }
-
-      .series-nav ul {
-        list-style: none;
-      }
-
-      .series-nav li {
-        margin-bottom: 0.25rem;
-      }
-
-      .series-nav a {
-        color: var(--text-muted);
-      }
-
-      .series-nav a:hover {
-        color: var(--accent);
-      }
-
-      .series-nav .current {
-        color: var(--text);
-        font-weight: 600;
-      }
-
-      .footer {
-        margin-top: 3rem;
-        padding: 1rem 0;
-        border-top: 1px solid var(--border);
-        text-align: center;
-        color: var(--text-muted);
-        font-size: 0.9rem;
-      }
-
-      .post-list-item {
         margin-bottom: 1rem;
-        padding-bottom: 1rem;
+      }
+
+      .page-header {
+        margin-bottom: 3rem;
+        padding-bottom: 2.5rem;
+        border-bottom: 1px solid var(--border);
+      }
+
+      /* The reference's signature 48×2 amber rule. */
+      .page-header::after {
+        content: '';
+        display: block;
+        width: 48px;
+        height: 2px;
+        background: var(--accent);
+        border-radius: 1px;
+        margin-top: 2.5rem;
+      }
+
+      .page-header h1 {
+        margin-bottom: 0;
+      }
+
+      .page-subtitle {
+        font-family: var(--font-body);
+        font-size: 1.2rem;
+        color: var(--text-muted);
+        font-style: italic;
+        margin-top: 0.75rem;
+        margin-bottom: 0;
+      }
+
+      .byline {
+        font-family: var(--font-brand);
+        font-weight: 300;
+        font-size: 0.8rem;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: var(--text-muted);
+        margin-top: 1.25rem;
+        margin-bottom: 0;
+      }
+
+      /* ── Inline code (reference `:not(pre) > code`) ── */
+      :not(pre) > code {
+        font-family: var(--font-mono);
+        font-size: 0.85em;
+        background: var(--tag-bg);
+        color: var(--tag-text);
+        padding: 0.1em 0.35em;
+        border-radius: 3px;
+        border: 1px solid var(--tag-border);
+      }
+
+      /* ── Code blocks (reference `.post-body pre`): brand slate ground,
+            8px radius, cream type, hairline light border ── */
+      pre,
+      pre.astro-code {
+        /* !important: Astro/Shiki writes background-color inline on <pre>. */
+        background-color: var(--code-bg) !important;
+        border-radius: 8px;
+        padding: 1.25rem 1.5rem;
+        overflow-x: auto;
+        margin: 1.75rem 0;
+        border: 1px solid var(--code-border);
+      }
+
+      pre code {
+        font-family: var(--font-mono);
+        font-size: 0.875rem;
+        line-height: 1.6;
+        background: none;
+        border: none;
+        padding: 0;
+        color: var(--code-text);
+      }
+
+      /* ── Blockquote (reference: 3px amber rule, italic, muted) ── */
+      blockquote {
+        border-left: 3px solid var(--accent);
+        padding: 0.5rem 0 0.5rem 1.5rem;
+        margin: 2rem 0;
+        color: var(--text-muted);
+        font-style: italic;
+      }
+
+      blockquote p {
+        margin-bottom: 0;
+      }
+
+      /* ── Tables (reference: slate head band, striped --surface rows) ── */
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 1.75rem 0;
+        font-family: var(--font-brand);
+        font-weight: 300;
+        font-size: 0.875rem;
+        border-radius: 8px;
+        overflow: hidden;
+        border: 1px solid var(--border);
+      }
+
+      th {
+        background: var(--th-bg);
+        color: var(--th-text);
+        padding: 0.75rem 1rem;
+        text-align: left;
+        font-weight: 700;
+        font-size: 0.75rem;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+      }
+
+      td {
+        padding: 0.75rem 1rem;
+        border-bottom: 1px solid var(--border);
+        vertical-align: top;
+        font-family: var(--font-body);
+        font-size: 0.95rem;
+      }
+
+      tr:last-child td {
+        border-bottom: none;
+      }
+
+      tr:nth-child(even) td {
+        background: var(--surface);
+      }
+
+      /* ── Lists / rules ── */
+      ul, ol {
+        margin: 0.75rem 0 1.5rem 1.75rem;
+      }
+
+      li {
+        margin-bottom: 0.4rem;
+      }
+
+      li > ul, li > ol {
+        margin-top: 0.4rem;
+        margin-bottom: 0.4rem;
+      }
+
+      hr {
+        border: none;
+        border-top: 1px solid var(--border);
+        margin: 3.5rem 0;
+      }
+
+      /* ── Post lists: plain hairline-separated rows, no cards ── */
+      .post-list-item {
+        margin-bottom: 1.25rem;
+        padding-bottom: 1.25rem;
         border-bottom: 1px solid var(--border);
       }
 
@@ -263,39 +639,208 @@ const canonicalUrl = new URL(Astro.url.pathname, 'https://hendocode.github.io');
         padding-bottom: 0;
       }
 
-      .project-item {
-        margin-bottom: 1.5rem;
-      }
-
-      .project-title {
-        margin-bottom: 0.25rem;
-      }
-
-      .project-description {
-        margin-bottom: 0.5rem;
-        color: var(--text-muted);
-      }
-
-      .project-url {
-        color: var(--accent);
-      }
-
-      .about-text p {
-        margin-bottom: 1rem;
-      }
-
+      .post-date,
       .post-meta {
+        font-family: var(--font-brand);
+        font-weight: 300;
+        font-size: 0.75rem;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
         color: var(--text-muted);
-        font-size: 0.9rem;
-        margin-bottom: 0.5rem;
+      }
+
+      /* Reference index lists titles as bold slate with the link accent on
+         the numeric/anchor element — titles stay slate and warm on hover. */
+      .post-title {
+        font-family: var(--font-body);
+        font-weight: 700;
+        font-size: 1.0625rem;
+        line-height: 1.45;
+        color: var(--heading);
+        text-decoration: none;
+      }
+
+      .post-title:hover,
+      .post-title:focus-visible {
+        color: var(--accent-strong);
+        text-decoration: underline;
+        text-underline-offset: 3px;
+      }
+
+      /* ── Tag chips: the reference's tag/inline-code treatment — amber-tinted
+            ground, amber-d type, hairline amber border, 3px radius (not a pill),
+            set in hairline Josefin Sans uppercase ── */
+      .tag-chip {
+        display: inline-block;
+        font-family: var(--font-brand);
+        font-weight: 300;
+        font-size: 0.6875rem;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        line-height: 1.6;
+        background: var(--tag-bg);
+        color: var(--tag-text);
+        border: 1px solid var(--tag-border);
+        padding: 0.1rem 0.5rem;
+        border-radius: 3px;
+        text-decoration: none;
+        margin-right: 0.4rem;
+        margin-bottom: 0.4rem;
+      }
+
+      a.tag-chip:hover,
+      a.tag-chip:focus-visible {
+        background: var(--accent);
+        border-color: var(--accent);
+        color: var(--slate-d);
+        text-decoration: none;
+      }
+
+      .tag-chip.current {
+        background: var(--slate);
+        border-color: var(--slate);
+        color: var(--cream);
+        font-weight: 700;
       }
 
       .post-tags {
-        margin-bottom: 1rem;
+        margin-top: 0.6rem;
+        margin-bottom: 0;
+      }
+
+      /* ── Bordered index button (reference `.nav-index`) ── */
+      .btn-index {
+        display: inline-block;
+        font-family: var(--font-brand);
+        font-weight: 700;
+        font-size: 0.7rem;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        text-align: center;
+        color: var(--btn-text);
+        text-decoration: none;
+        padding: 0.4rem 0.9rem;
+        border: 1px solid var(--btn-border);
+        border-radius: 3px;
+        white-space: nowrap;
+      }
+
+      .btn-index:hover,
+      .btn-index:focus-visible {
+        background: var(--btn-hover-bg);
+        border-color: var(--btn-hover-bg);
+        color: var(--btn-hover-text);
+        text-decoration: none;
+      }
+
+      /* ── Series navigation (reference `nav.post-nav` voice: hairline
+            Josefin Sans, muted, warming to the accent) ── */
+      .series-nav {
+        margin-top: 3rem;
+        padding-top: 1.5rem;
+        border-top: 1px solid var(--border);
+      }
+
+      .series-nav ul {
+        list-style: none;
+        margin: 0.75rem 0 0;
+      }
+
+      .series-nav li {
+        margin-bottom: 0.35rem;
+        font-family: var(--font-brand);
+        font-weight: 300;
+        font-size: 0.85rem;
+        letter-spacing: 0.05em;
+      }
+
+      .series-nav a {
+        color: var(--text-muted);
+        text-decoration: none;
+      }
+
+      .series-nav a:hover,
+      .series-nav a:focus-visible {
+        color: var(--accent-strong);
+        text-decoration: underline;
+        text-underline-offset: 3px;
+      }
+
+      .series-nav .current {
+        color: var(--heading);
+        font-weight: 700;
+      }
+
+      /* ── Projects / about: plain text blocks, no cards ── */
+      .project-item {
+        margin-bottom: 2rem;
+        padding-bottom: 2rem;
+        border-bottom: 1px solid var(--border);
+      }
+
+      .project-item:last-child {
+        border-bottom: none;
+        margin-bottom: 0;
+        padding-bottom: 0;
+      }
+
+      .project-title {
+        margin-top: 0;
+        margin-bottom: 0.5rem;
+      }
+
+      .project-description {
+        color: var(--text-muted);
+        margin-bottom: 0.5rem;
+      }
+
+      .about-text p {
+        margin-bottom: 1.5rem;
       }
 
       .post-content {
-        margin-top: 1.5rem;
+        margin-top: 2.5rem;
+      }
+
+      /* ── Footer (reference `footer.site-footer`): full-bleed slate band,
+            centred, wordmark scaled up to 1.4rem ── */
+      footer.site-footer {
+        background: var(--footer-bg);
+        color: var(--footer-text);
+        padding: 2.5rem 1.25rem;
+        text-align: center;
+        font-family: var(--font-brand);
+        font-weight: 300;
+        font-size: 0.8rem;
+        letter-spacing: 0.06em;
+      }
+
+      footer.site-footer p {
+        margin-bottom: 0.5rem;
+      }
+
+      footer.site-footer p:last-child {
+        margin-bottom: 0;
+      }
+
+      .footer-brand {
+        margin-bottom: 1rem;
+      }
+
+      .footer-brand .brand-hendo,
+      .footer-brand .brand-code {
+        font-size: 1.4rem;
+      }
+
+      footer.site-footer a {
+        color: var(--footer-link);
+        text-decoration: underline;
+        text-underline-offset: 3px;
+      }
+
+      footer.site-footer a:hover,
+      footer.site-footer a:focus-visible {
+        color: var(--accent);
       }
 
       .sr-only {
@@ -310,31 +855,64 @@ const canonicalUrl = new URL(Astro.url.pathname, 'https://hendocode.github.io');
         border-width: 0;
       }
 
-      @media (max-width: 600px) {
+      /* ── Responsive (reference collapses the header at 640px) ── */
+      @media (max-width: 640px) {
+        .container {
+          padding: 2rem 1.25rem 3rem;
+        }
+
+        h1 {
+          font-size: 2rem;
+        }
+
+        /* Reference hides its breadcrumb tail at this width. */
+        .nav-divider,
+        .nav-section {
+          display: none;
+        }
+
         .nav-links {
-          gap: 1rem;
+          gap: 0.85rem;
+        }
+
+        .nav-gh span {
+          display: none;
         }
       }
     </style>
   </head>
   <body>
-    <div class="container">
-      <header class="nav">
-        <a href="/" class="nav-brand">HendoCode</a>
-        <nav class="nav-links">
-          <a href="/" class="nav-link">Home</a>
-          <a href="/posts/" class="nav-link">Posts</a>
-          <a href="/projects/" class="nav-link">Projects</a>
-          <a href="/about/" class="nav-link">About</a>
-          <a href="https://github.com/HendoCode" target="_blank" rel="noopener noreferrer" class="nav-link" aria-label="GitHub">
-            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display: block;">
+    <nav class="top-nav">
+      <div class="nav-inner">
+        <div class="nav-left">
+          <a class="nav-brand" href="/" aria-label="HendoCode — home">
+            <span class="brand-hendo">Hendo</span><span class="brand-code">Code</span>
+          </a>
+          {section && (
+            <>
+              <span class="nav-divider" aria-hidden="true">/</span>
+              <span class="nav-section">{section}</span>
+            </>
+          )}
+        </div>
+        <div class="nav-links">
+          {navItems.map((item) => (
+            <a
+              href={item.href}
+              class="nav-link"
+              aria-current={isActive(item.href) ? 'page' : undefined}
+            >{item.label}</a>
+          ))}
+          <a href="https://github.com/HendoCode" target="_blank" rel="noopener noreferrer" class="nav-gh" aria-label="HendoCode on GitHub">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
               <path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"></path>
             </svg>
+            <span>GitHub</span>&nbsp;↗
           </a>
           <button class="theme-toggle" id="themeToggle" aria-label="Toggle theme">
             <span id="themeIcon" aria-hidden="true">
               <!-- Sun icon -->
-              <svg id="sunIcon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <svg id="sunIcon" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <circle cx="12" cy="12" r="5"></circle>
                 <line x1="12" y1="1" x2="12" y2="3"></line>
                 <line x1="12" y1="21" x2="12" y2="23"></line>
@@ -346,22 +924,26 @@ const canonicalUrl = new URL(Astro.url.pathname, 'https://hendocode.github.io');
                 <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
               </svg>
               <!-- Moon icon -->
-              <svg id="moonIcon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display: none;">
+              <svg id="moonIcon" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display: none;">
                 <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
               </svg>
             </span>
           </button>
-        </nav>
-      </header>
+        </div>
+      </div>
+    </nav>
 
-      <main>
-        <slot />
-      </main>
+    <main class="container">
+      <slot />
+    </main>
 
-      <footer class="footer">
-        © 2026 Stephen Henderson
-      </footer>
-    </div>
+    <footer class="site-footer">
+      <div class="footer-brand">
+        <span class="brand-hendo">Hendo</span><span class="brand-code">Code</span>
+      </div>
+      <p>Stephen Henderson &mdash; field SE, AI systems, San Antonio</p>
+      <p>&copy; 2026 Stephen Henderson</p>
+    </footer>
 
     <script>
       // Theme toggle functionality

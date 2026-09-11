@@ -25,17 +25,25 @@ const readingTime = Math.ceil(wordCount / 200);
 const formattedDate = new Date(post.data.date).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
 ---
 
-<Layout title={`${post.data.title} - HendoCode`} description={post.data.description}>
+<Layout
+  title={`${post.data.title} - HendoCode`}
+  description={post.data.description}
+  section={post.data.series || 'Posts'}
+>
   <article>
-    <h1>{post.data.title}</h1>
-    <p class="post-meta">{formattedDate} · {readingTime} min read</p>
-    {post.data.tags && post.data.tags.length > 0 && (
-      <div class="post-tags">
-        {post.data.tags.map(tag => (
-          <a class="tag-chip" href={`/tags/${tag}/`}>{tag}</a>
-        ))}
-      </div>
-    )}
+    <header class="page-header">
+      <div class="eyebrow">{post.data.series || 'HendoCode'}</div>
+      <h1>{post.data.title}</h1>
+      <div class="byline">{formattedDate} &middot; {readingTime} min read</div>
+      {post.data.tags && post.data.tags.length > 0 && (
+        <div class="post-tags">
+          {post.data.tags.map(tag => (
+            <a class="tag-chip" href={`/tags/${tag}/`}>{tag}</a>
+          ))}
+        </div>
+      )}
+    </header>
+
     <div class="post-content">
       <Content />
     </div>
@@ -58,5 +66,5 @@ const formattedDate = new Date(post.data.date).toLocaleDateString('en-US', { yea
     </div>
   )}
 
-  <p><a href="/posts/">← Back to posts</a></p>
+  <p><a href="/posts/" class="btn-index">← Back to posts</a></p>
 </Layout>

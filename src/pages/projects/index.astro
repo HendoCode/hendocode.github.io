@@ -8,15 +8,18 @@ const projects = await getCollection('projects');
 const sortedProjects = projects.sort((a, b) => a.data.order - b.data.order);
 ---
 
-<Layout title="Projects - HendoCode" description="Selected projects by Stephen Henderson">
-  <h1>Projects</h1>
+<Layout title="Projects - HendoCode" description="Selected projects by Stephen Henderson" section="Projects">
+  <header class="page-header">
+    <div class="eyebrow">Selected work</div>
+    <h1>Projects</h1>
+  </header>
 
   {sortedProjects.map(project => (
     <div class="project-item">
-      <h3 class="project-title">{project.data.title}</h3>
+      <h2 class="project-title">{project.data.title}</h2>
       <p class="project-description">{project.data.description}</p>
       {project.data.url && (
-        <a href={project.data.url} class="project-url">View project →</a>
+        <a href={project.data.url} class="btn-index">View project →</a>
       )}
     </div>
   ))}

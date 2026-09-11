@@ -11,8 +11,12 @@ const recentPosts = posts
 ---
 
 <Layout title="HendoCode" description="Stephen Henderson's personal technical blog and portfolio">
-  <h1>HendoCode</h1>
-  <p>Stephen Henderson — field SE, AI systems, San Antonio</p>
+  <header class="page-header">
+    <div class="eyebrow">Stephen Henderson</div>
+    <h1>HendoCode</h1>
+    <p class="page-subtitle">Field SE, AI systems, San Antonio</p>
+  </header>
+
   <p>I build things and write about what I learn from doing it.</p>
 
   <h2>Recent Posts</h2>
@@ -21,10 +25,10 @@ const recentPosts = posts
       <div class="post-list-item">
         <span class="post-date">{new Date(post.data.date).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</span>
         <br />
-        <a href={`/posts/${post.slug}/`}>{post.data.title}</a>
+        <a href={`/posts/${post.slug}/`} class="post-title">{post.data.title}</a>
       </div>
     ))}
   </div>
 
-  <a href="/posts/">All posts →</a>
+  <p><a href="/posts/" class="btn-index">All posts →</a></p>
 </Layout>
