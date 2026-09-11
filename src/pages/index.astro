@@ -1,0 +1,31 @@
+---
+---
+import Layout from '../layouts/Layout.astro';
+import { getCollection } from 'astro:content';
+
+const posts = await getCollection('posts', ({ data }) => !data.draft);
+
+// Get the 5 most recent posts
+const recentPosts = posts
+  .sort((a, b) => new Date(b.data.date) - new Date(a.data.date))
+  .slice(0, 5);
+---
+
+<Layout>
+  <h1>HendoCode</h1>
+  <p>Stephen Henderson — field SE, AI systems, San Antonio</p>
+  <p>I build things and write about what I learn from doing it.</p>
+
+  <h2>Recent Posts</h2>
+  <div class="post-list">
+    {recentPosts.map((post) => (
+      <div class="post-list-item">
+        <span class="post-date">{new Date(post.data.date).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</span>
+        <br />
+        <a href={post.slug}>{post.data.title}</a>
+      </div>
+    ))}
+  </div>
+
+  <a href="/posts/">All posts →</a>
+</Layout>

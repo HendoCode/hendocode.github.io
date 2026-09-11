@@ -1,0 +1,27 @@
+---
+---
+export async function get() {
+  const rss = `<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0">
+  <channel>
+    <title>HendoCode</title>
+    <link>https://hendocode.github.io</link>
+    <description>Stephen Henderson's personal technical blog and portfolio</description>
+    <language>en-us</language>
+    <lastBuildDate>${new Date().toUTCString()}</lastBuildDate>
+    <item>
+      <title>Test Post</title>
+      <link>https://hendocode.github.io/posts/test</link>
+      <description>Test description</description>
+      <pubDate>${new Date().toUTCString()}</pubDate>
+      <guid>https://hendocode.github.io/posts/test</guid>
+    </item>
+  </channel>
+</rss>`;
+  
+  return new Response(rss, {
+    headers: {
+      'Content-Type': 'application/xml'
+    }
+  });
+}

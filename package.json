@@ -1,0 +1,20 @@
+{
+  "name": "hendocode-portfolio",
+  "version": "0.0.1",
+  "description": "Stephen Henderson's personal technical blog and portfolio",
+  "author": "Stephen Henderson <stephenhenderson8@gmail.com>",
+  "license": "MIT",
+  "scripts": {
+    "dev": "astro dev",
+    "start": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview",
+    "astro": "astro"
+  },
+  "dependencies": {
+    "astro": "^4.16.19",
+    "@astrojs/mdx": "^8.0.1",
+    "@astrojs/sitemap": "^3.1.5",
+    "autoprefixer": "^10.4.20"
+  }
+}
