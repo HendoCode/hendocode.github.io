@@ -1,0 +1,413 @@
+---
+export interface Props {
+  title?: string;
+  description?: string;
+}
+
+const { title = 'HendoCode', description = 'Stephen Henderson\'s personal technical blog and portfolio' } = Astro.props;
+const canonicalUrl = new URL(Astro.url.pathname, 'https://hendocode.github.io');
+---
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonicalUrl} />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <style>
+      :root {
+        /* Light mode */
+        --bg: #ffffff;
+        --bg-secondary: #f8fafc;
+        --text: #1e293b;
+        --text-muted: #64748b;
+        --accent: #2563eb;
+        --accent-hover: #1d4ed8;
+        --border: #e2e8f0;
+        --code-bg: #f1f5f9;
+      }
+
+      @media (prefers-color-scheme: dark) {
+        :root {
+          /* Dark mode */
+          --bg: #0f172a;
+          --bg-secondary: #1e293b;
+          --text: #e2e8f0;
+          --text-muted: #94a3b8;
+          --accent: #60a5fa;
+          --accent-hover: #93c5fd;
+          --border: #334155;
+          --code-bg: #1e293b;
+        }
+      }
+
+      [data-theme="dark"] {
+        --bg: #0f172a;
+        --bg-secondary: #1e293b;
+        --text: #e2e8f0;
+        --text-muted: #94a3b8;
+        --accent: #60a5fa;
+        --accent-hover: #93c5fd;
+        --border: #334155;
+        --code-bg: #1e293b;
+      }
+
+      [data-theme="light"] {
+        --bg: #ffffff;
+        --bg-secondary: #f8fafc;
+        --text: #1e293b;
+        --text-muted: #64748b;
+        --accent: #2563eb;
+        --accent-hover: #1d4ed8;
+        --border: #e2e8f0;
+        --code-bg: #f1f5f9;
+      }
+
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        background-color: var(--bg);
+        color: var(--text);
+        font-family: 'Inter', sans-serif;
+        line-height: 1.7;
+        font-size: 16px;
+        transition: background-color 0.3s ease, color 0.3s ease;
+      }
+
+      .container {
+        max-width: 680px;
+        margin: 0 auto;
+        padding: 0 1rem;
+      }
+
+      h1, h2, h3, h4, h5, h6 {
+        font-weight: 600;
+        line-height: 1.3;
+        margin-bottom: 0.5rem;
+      }
+
+      h1 {
+        font-size: 2rem;
+      }
+
+      h2 {
+        font-size: 1.5rem;
+      }
+
+      h3 {
+        font-size: 1.25rem;
+      }
+
+      p {
+        margin-bottom: 1rem;
+      }
+
+      a {
+        color: var(--accent);
+        text-decoration: none;
+      }
+
+      a:hover {
+        color: var(--accent-hover);
+      }
+
+      code {
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 0.875rem;
+        background-color: var(--code-bg);
+        padding: 0.2em 0.4em;
+        border-radius: 4px;
+      }
+
+      pre {
+        overflow-x: auto;
+        background-color: var(--code-bg);
+        padding: 1rem;
+        border-radius: 4px;
+        margin-bottom: 1rem;
+      }
+
+      pre code {
+        background: none;
+        padding: 0;
+      }
+
+      .nav {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 1rem 0;
+        margin-bottom: 2rem;
+        border-bottom: 1px solid var(--border);
+      }
+
+      .nav-brand {
+        font-weight: 700;
+        color: var(--text);
+      }
+
+      .nav-links {
+        display: flex;
+        align-items: center;
+        gap: 1.5rem;
+        flex-wrap: wrap;
+      }
+
+      .nav-link {
+        color: var(--text);
+        font-weight: 500;
+      }
+
+      .nav-link:hover {
+        color: var(--accent);
+      }
+
+      .theme-toggle {
+        background: none;
+        border: none;
+        cursor: pointer;
+        color: var(--text);
+        font-size: 1.2rem;
+        padding: 0.25rem;
+        border-radius: 4px;
+        line-height: 1;
+      }
+
+      .theme-toggle:hover {
+        background-color: var(--bg-secondary);
+      }
+
+      .theme-toggle svg {
+        display: block;
+      }
+
+      .post-date {
+        color: var(--text-muted);
+        font-size: 0.9rem;
+      }
+
+      .tag-chip {
+        background-color: var(--bg-secondary);
+        color: var(--text-muted);
+        padding: 0.25rem 0.5rem;
+        border-radius: 9999px;
+        font-size: 0.8rem;
+        margin-right: 0.5rem;
+        margin-bottom: 0.5rem;
+        display: inline-block;
+      }
+
+      a.tag-chip {
+        color: var(--text-muted);
+      }
+
+      a.tag-chip:hover {
+        color: var(--accent);
+      }
+
+      .series-nav {
+        margin-top: 2rem;
+        padding-top: 1rem;
+        border-top: 1px solid var(--border);
+      }
+
+      .series-nav ul {
+        list-style: none;
+      }
+
+      .series-nav li {
+        margin-bottom: 0.25rem;
+      }
+
+      .series-nav a {
+        color: var(--text-muted);
+      }
+
+      .series-nav a:hover {
+        color: var(--accent);
+      }
+
+      .series-nav .current {
+        color: var(--text);
+        font-weight: 600;
+      }
+
+      .footer {
+        margin-top: 3rem;
+        padding: 1rem 0;
+        border-top: 1px solid var(--border);
+        text-align: center;
+        color: var(--text-muted);
+        font-size: 0.9rem;
+      }
+
+      .post-list-item {
+        margin-bottom: 1rem;
+        padding-bottom: 1rem;
+        border-bottom: 1px solid var(--border);
+      }
+
+      .post-list-item:last-child {
+        border-bottom: none;
+        margin-bottom: 0;
+        padding-bottom: 0;
+      }
+
+      .project-item {
+        margin-bottom: 1.5rem;
+      }
+
+      .project-title {
+        margin-bottom: 0.25rem;
+      }
+
+      .project-description {
+        margin-bottom: 0.5rem;
+        color: var(--text-muted);
+      }
+
+      .project-url {
+        color: var(--accent);
+      }
+
+      .about-text p {
+        margin-bottom: 1rem;
+      }
+
+      .post-meta {
+        color: var(--text-muted);
+        font-size: 0.9rem;
+        margin-bottom: 0.5rem;
+      }
+
+      .post-tags {
+        margin-bottom: 1rem;
+      }
+
+      .post-content {
+        margin-top: 1.5rem;
+      }
+
+      .sr-only {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        padding: 0;
+        margin: -1px;
+        overflow: hidden;
+        clip: rect(0, 0, 0, 0);
+        white-space: nowrap;
+        border-width: 0;
+      }
+
+      @media (max-width: 600px) {
+        .nav-links {
+          gap: 1rem;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <header class="nav">
+        <a href="/" class="nav-brand">HendoCode</a>
+        <nav class="nav-links">
+          <a href="/" class="nav-link">Home</a>
+          <a href="/posts/" class="nav-link">Posts</a>
+          <a href="/projects/" class="nav-link">Projects</a>
+          <a href="/about/" class="nav-link">About</a>
+          <a href="https://github.com/HendoCode" target="_blank" rel="noopener noreferrer" class="nav-link" aria-label="GitHub">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display: block;">
+              <path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"></path>
+            </svg>
+          </a>
+          <button class="theme-toggle" id="themeToggle" aria-label="Toggle theme">
+            <span id="themeIcon" aria-hidden="true">
+              <!-- Sun icon -->
+              <svg id="sunIcon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="5"></circle>
+                <line x1="12" y1="1" x2="12" y2="3"></line>
+                <line x1="12" y1="21" x2="12" y2="23"></line>
+                <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                <line x1="1" y1="12" x2="3" y2="12"></line>
+                <line x1="21" y1="12" x2="23" y2="12"></line>
+                <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+              </svg>
+              <!-- Moon icon -->
+              <svg id="moonIcon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display: none;">
+                <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+              </svg>
+            </span>
+          </button>
+        </nav>
+      </header>
+
+      <main>
+        <slot />
+      </main>
+
+      <footer class="footer">
+        © 2026 Stephen Henderson
+      </footer>
+    </div>
+
+    <script>
+      // Theme toggle functionality
+      const themeToggle = document.getElementById('themeToggle');
+      const html = document.documentElement;
+      const sunIcon = document.getElementById('sunIcon');
+      const moonIcon = document.getElementById('moonIcon');
+      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)');
+
+      function updateIcons(isDark) {
+        if (isDark) {
+          sunIcon.style.display = 'none';
+          moonIcon.style.display = 'block';
+        } else {
+          sunIcon.style.display = 'block';
+          moonIcon.style.display = 'none';
+        }
+      }
+
+      function setTheme(theme) {
+        if (theme === 'dark') {
+          html.setAttribute('data-theme', 'dark');
+          updateIcons(true);
+        } else if (theme === 'light') {
+          html.setAttribute('data-theme', 'light');
+          updateIcons(false);
+        } else {
+          html.removeAttribute('data-theme');
+          updateIcons(prefersDark.matches);
+        }
+        localStorage.setItem('theme', theme);
+      }
+
+      // Initialize theme from saved preference or OS preference
+      const savedTheme = localStorage.getItem('theme');
+      if (savedTheme) {
+        setTheme(savedTheme);
+      } else {
+        setTheme(prefersDark.matches ? 'dark' : 'light');
+      }
+
+      themeToggle.addEventListener('click', () => {
+        const current = html.getAttribute('data-theme');
+        const isDark = current === 'dark' || (!current && prefersDark.matches);
+        setTheme(isDark ? 'light' : 'dark');
+      });
+    </script>
+  </body>
+</html>

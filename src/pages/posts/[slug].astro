@@ -1,0 +1,62 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import { getCollection } from 'astro:content';
+
+export async function getStaticPaths() {
+  const posts = await getCollection('posts', ({ data }) => !data.draft);
+  return posts.map(post => ({
+    params: { slug: post.slug },
+    props: { post },
+  }));
+}
+
+const { post } = Astro.props;
+const { Content } = await post.render();
+
+const allPosts = await getCollection('posts', ({ data }) => !data.draft);
+const seriesPosts = post.data.series
+  ? allPosts
+      .filter(p => p.data.series === post.data.series)
+      .sort((a, b) => new Date(a.data.date).valueOf() - new Date(b.data.date).valueOf())
+  : [];
+
+const wordCount = post.body.split(/\s+/).filter(Boolean).length;
+const readingTime = Math.ceil(wordCount / 200);
+const formattedDate = new Date(post.data.date).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+---
+
+<Layout title={`${post.data.title} - HendoCode`} description={post.data.description}>
+  <article>
+    <h1>{post.data.title}</h1>
+    <p class="post-meta">{formattedDate} · {readingTime} min read</p>
+    {post.data.tags && post.data.tags.length > 0 && (
+      <div class="post-tags">
+        {post.data.tags.map(tag => (
+          <a class="tag-chip" href={`/tags/${tag}/`}>{tag}</a>
+        ))}
+      </div>
+    )}
+    <div class="post-content">
+      <Content />
+    </div>
+  </article>
+
+  {seriesPosts.length > 0 && (
+    <div class="series-nav">
+      <h3>{post.data.series}</h3>
+      <ul>
+        {seriesPosts.map(seriesPost => (
+          <li>
+            {seriesPost.slug === post.slug ? (
+              <span class="current">{seriesPost.data.title}</span>
+            ) : (
+              <a href={`/posts/${seriesPost.slug}/`}>{seriesPost.data.title}</a>
+            )}
+          </li>
+        ))}
+      </ul>
+    </div>
+  )}
+
+  <p><a href="/posts/">← Back to posts</a></p>
+</Layout>
