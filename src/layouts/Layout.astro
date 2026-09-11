@@ -879,9 +879,27 @@ const navItems = [
           display: none;
         }
       }
+
+      /* Sticky footer implementation */
+      body {
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+      }
+
+      .page-wrapper {
+        display: flex;
+        flex-direction: column;
+        min-height: 100vh;
+      }
+
+      main.container {
+        flex: 1;
+      }
     </style>
   </head>
   <body>
+    <div class="page-wrapper">
     <nav class="top-nav">
       <div class="nav-inner">
         <div class="nav-left">
@@ -944,6 +962,7 @@ const navItems = [
       <p>Stephen Henderson &mdash; field SE, AI systems, San Antonio</p>
       <p>&copy; 2026 Stephen Henderson</p>
     </footer>
+    </div>
 
     <script>
       // Theme toggle functionality
