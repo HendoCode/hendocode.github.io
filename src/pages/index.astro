@@ -10,7 +10,7 @@ const recentPosts = posts
   .slice(0, 5);
 ---
 
-<Layout>
+<Layout title="HendoCode" description="Stephen Henderson's personal technical blog and portfolio">
   <h1>HendoCode</h1>
   <p>Stephen Henderson — field SE, AI systems, San Antonio</p>
   <p>I build things and write about what I learn from doing it.</p>
@@ -21,7 +21,7 @@ const recentPosts = posts
       <div class="post-list-item">
         <span class="post-date">{new Date(post.data.date).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</span>
         <br />
-        <a href={post.slug}>{post.data.title}</a>
+        <a href={`/posts/${post.slug}/`}>{post.data.title}</a>
       </div>
     ))}
   </div>

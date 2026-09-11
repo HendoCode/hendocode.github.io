@@ -8,7 +8,7 @@ const projects = await getCollection('projects');
 const sortedProjects = projects.sort((a, b) => a.data.order - b.data.order);
 ---
 
-<Layout>
+<Layout title="Projects - HendoCode" description="Selected projects by Stephen Henderson">
   <h1>Projects</h1>
 
   {sortedProjects.map(project => (
