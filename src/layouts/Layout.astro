@@ -12,7 +12,7 @@ const {
   section = '',
 } = Astro.props;
 
-const canonicalUrl = new URL(Astro.url.pathname, 'https://hendocode.github.io');
+const canonicalUrl = new URL(Astro.url.pathname, 'https://hendocode.com');
 const path = Astro.url.pathname;
 const isActive = (href: string) => (href === '/' ? path === '/' : path.startsWith(href));
 const navItems = [
