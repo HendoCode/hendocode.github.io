@@ -1,13 +1,12 @@
 ---
 import Layout from '../layouts/Layout.astro';
 import { getCollection } from 'astro:content';
+import { byDateDesc } from '../lib/posts';
 
 const posts = await getCollection('posts', ({ data }) => !data.draft);
 
 // Get the 5 most recent posts
-const recentPosts = posts
-  .sort((a, b) => new Date(b.data.date) - new Date(a.data.date))
-  .slice(0, 5);
+const recentPosts = posts.sort(byDateDesc).slice(0, 5);
 ---
 
 <Layout title="HendoCode" description="Stephen Henderson's personal technical blog and portfolio">
