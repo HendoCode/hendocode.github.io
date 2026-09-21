@@ -1,9 +1,10 @@
 ---
 import Layout from '../../layouts/Layout.astro';
 import { getCollection } from 'astro:content';
+import { byDateDesc } from '../../lib/posts';
 
 const posts = await getCollection('posts', ({ data }) => !data.draft);
-const sortedPosts = posts.sort((a, b) => new Date(b.data.date).valueOf() - new Date(a.data.date).valueOf());
+const sortedPosts = posts.sort(byDateDesc);
 
 const groupedByYear = sortedPosts.reduce((acc, post) => {
   const year = new Date(post.data.date).getFullYear();

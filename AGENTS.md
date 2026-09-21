@@ -44,12 +44,41 @@ rows. Several of these are things the reference site does have; omitting them is
 checks on this repo, and there is no browser available on the worker box, so verification is
 build-level plus reading the emitted `dist/**/*.html` and `dist/_astro/*.css`.
 
-Gotcha when exercising post styling: **every post in `src/content/posts/` is currently
-`draft: true`**, so a default build emits no post or tag pages at all. To check `.post-content`
-rendering (code blocks, tables, blockquotes, chips, series nav), temporarily add a scratch
-post with `draft: false` — but note Astro content collections **ignore filenames beginning
-with `_`**, so a name like `__check.md` will be silently skipped. Delete the scratch post
-before committing.
+The 12 `anchoring-ai` posts are live (`draft: false`), so a default build emits their post and
+tag pages — enough on its own to check `.post-content` rendering (code blocks, tables,
+blockquotes, chips, series nav). Every other file in `src/content/posts/` is still a draft.
+If you add a scratch post for something the series doesn't exercise, note Astro content
+collections **ignore filenames beginning with `_`**, so a name like `__check.md` is silently
+skipped. Delete the scratch post before committing.
+
+## The anchoring-ai series is migrated content — keep it verbatim
+
+The 12 posts with `series: "anchoring-ai"` were migrated from
+`github.com/HendoCode/contact-center-ai` (`blogs/NN-slug/index.md`), which remains the upstream
+source. Hendo's prose is reproduced verbatim; if upstream changes, re-copy the body rather than
+rewriting or "improving" it. Only the frontmatter and intra-series links (`../NN-slug/` →
+`/posts/<slug>/`) differ from upstream, and upstream's `prev_url`/`next_url` are dropped because
+`posts/[slug].astro` renders its own series nav.
+
+Six of the twelve are upstream placeholders and two are structured drafts. They ship here as
+non-draft on purpose (the series is meant to be complete on this site) and each keeps its own
+`> **Status: Placeholder.**` line — don't strip it and don't treat it as a defect. Upstream also
+renumbered the series mid-flight, so a few in-body cross-references ("Post 8", post 01's "What's
+Coming" table) cite stale numbers; that drift is upstream's and was left as authored.
+
+`the-blueprint` carries five ` ```mermaid ` fences. This site has no Mermaid loader (see the
+deliberate deviations above), so Shiki emits them as unhighlighted code and the diagrams read as
+source text. That is the accepted state — wiring a Mermaid CDN script into `Layout.astro` is a
+product decision, not a build fix.
+
+## Post ordering: `subtitle`, `order`, and src/lib/posts.ts
+
+`subtitle` (deck line, rendered with the existing `.page-subtitle` style) and `order` (position
+within `series`) are optional fields on the posts schema. `order` exists because seven of the
+twelve anchoring-ai posts share the publish date 2026-06-10, so date alone cannot order them.
+Every listing sorts through `src/lib/posts.ts` (`byDateDesc`/`byDateAsc` — date, then `order`);
+use it in any new listing page instead of writing a fresh comparator, or same-date posts come
+out in whatever order the content loader returned them.
 
 ## Maintaining this file
 
