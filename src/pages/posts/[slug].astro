@@ -1,6 +1,7 @@
 ---
 import Layout from '../../layouts/Layout.astro';
 import { getCollection } from 'astro:content';
+import { byDateAsc } from '../../lib/posts';
 
 export async function getStaticPaths() {
   const posts = await getCollection('posts', ({ data }) => !data.draft);
@@ -14,10 +15,9 @@ const { post } = Astro.props;
 const { Content } = await post.render();
 
 const allPosts = await getCollection('posts', ({ data }) => !data.draft);
+// Chronological, then by position within the series (see lib/posts.ts).
 const seriesPosts = post.data.series
-  ? allPosts
-      .filter(p => p.data.series === post.data.series)
-      .sort((a, b) => new Date(a.data.date).valueOf() - new Date(b.data.date).valueOf())
+  ? allPosts.filter(p => p.data.series === post.data.series).sort(byDateAsc)
   : [];
 
 const wordCount = post.body.split(/\s+/).filter(Boolean).length;
@@ -34,6 +34,7 @@ const formattedDate = new Date(post.data.date).toLocaleDateString('en-US', { yea
     <header class="page-header">
       <div class="eyebrow">{post.data.series || 'HendoCode'}</div>
       <h1>{post.data.title}</h1>
+      {post.data.subtitle && <p class="page-subtitle">{post.data.subtitle}</p>}
       <div class="byline">{formattedDate} &middot; {readingTime} min read</div>
       {post.data.tags && post.data.tags.length > 0 && (
         <div class="post-tags">
