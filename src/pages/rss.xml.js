@@ -1,9 +1,10 @@
 import { getCollection } from 'astro:content';
 import rss from '@astrojs/rss';
+import { byDateDesc } from '../lib/posts';
 
 export async function GET(context) {
   const posts = await getCollection('posts', ({ data }) => !data.draft);
-  const sortedPosts = posts.sort((a, b) => new Date(b.data.date) - new Date(a.data.date));
+  const sortedPosts = posts.sort(byDateDesc);
 
   return rss({
     title: 'HendoCode',
