@@ -38,16 +38,24 @@ only permitted transition, and it must never be applied to `:hover`), comments, 
 buttons, newsletter signup, search, or analytics. Post listings stay plain hairline-separated
 rows. Several of these are things the reference site does have; omitting them is intentional.
 
+Visible chrome and About copy avoid em dashes (use a comma, or `·` as the footer does) — a
+deliberate 2026-09-23 decision; the ~250 em dashes inside anchoring-ai post prose are Stephen's
+writing and stay untouched, and em dashes in CSS comments and `aria-label`s are fine because
+they aren't rendered copy.
+
 ## Verifying changes
 
 `npm run build` (Astro static build) is the only gate — there is no test suite and no CI
 checks on this repo, and there is no browser available on the worker box, so verification is
 build-level plus reading the emitted `dist/**/*.html` and `dist/_astro/*.css`.
 
-The 12 `anchoring-ai` posts are live (`draft: false`), so a default build emits their post and
-tag pages — enough on its own to check `.post-content` rendering (code blocks, tables,
-blockquotes, chips, series nav). Every other file in `src/content/posts/` is still a draft.
-If you add a scratch post for something the series doesn't exercise, note Astro content
+Six `anchoring-ai` posts are live, so a default build emits their post and tag pages — enough
+on its own to check `.post-content` rendering (code blocks, tables, blockquotes, chips, series
+nav): `the-blueprint`, `from-text-to-vectors`, `the-interface-layer`, `run-anywhere`,
+`trust-but-verify`, `whats-next`. Six are drafted (`draft: true`) and render nowhere:
+`agent-harness`, `built-to-last`, `real-data-in`, `the-developers-toolkit`,
+`what-should-we-measure`, `wiring-it-up`. Every other file in `src/content/posts/` is also a
+draft. If you add a scratch post for something the series doesn't exercise, note Astro content
 collections **ignore filenames beginning with `_`**, so a name like `__check.md` is silently
 skipped. Delete the scratch post before committing.
 
@@ -56,13 +64,24 @@ skipped. Delete the scratch post before committing.
 The 12 posts with `series: "anchoring-ai"` were migrated from
 `github.com/HendoCode/contact-center-ai` (`blogs/NN-slug/index.md`), which remains the upstream
 source. Hendo's prose is reproduced verbatim; if upstream changes, re-copy the body rather than
-rewriting or "improving" it. Only the frontmatter and intra-series links (`../NN-slug/` →
-`/posts/<slug>/`) differ from upstream, and upstream's `prev_url`/`next_url` are dropped because
-`posts/[slug].astro` renders its own series nav.
+rewriting or "improving" it. Only the frontmatter, intra-series links (`../NN-slug/` →
+`/posts/<slug>/`), and the deliberate deviations called out below differ from upstream; upstream
+also drops `prev_url`/`next_url` here because `posts/[slug].astro` renders its own series nav.
 
-Six of the twelve are upstream placeholders and two are structured drafts. They ship here as
-non-draft on purpose (the series is meant to be complete on this site) and each keeps its own
-`> **Status: Placeholder.**` line — don't strip it and don't treat it as a defect. Upstream also
+**Do not reintroduce GitAgent or Lyzr references.** Upstream promotes GitAgent (`gitagent.sh`,
+the `open-gitagent` org), a Lyzr project; Lyzr publicly attacked LangChain and that partnership
+is over, so this repo removed every mention — `whats-next` says "coding agents" instead, and
+`agent-harness` is re-scoped to Stephen's real harness (Claude Code and the Pi coding agent,
+with firstmate orchestrating; spell it **Pi**, capital P, and **firstmate**, lowercase). That
+removal outranks the verbatim rule above: strip these again whenever re-copying from upstream.
+Gate with `grep -rniE "gitagent|open-gitagent|opengap|lyzr" src/ dist/`, which must be empty.
+
+Six of the twelve are upstream placeholders, and those are the six drafted posts listed in
+*Verifying changes* — hidden here so the site never leads with a stub, though upstream ships
+them published. Each keeps its own `> **Status: Placeholder.**` line for when it gets written;
+don't strip it and don't treat it as a defect. Hidden posts would 404, so references to drafted
+ones from live posts are plain text with no link, and `the-blueprint`'s series table marks them
+`(planned)` — restore that state if a re-copy from upstream relinks them. Upstream also
 renumbered the series mid-flight, so a few in-body cross-references ("Post 8", post 01's "What's
 Coming" table) cite stale numbers; that drift is upstream's and was left as authored.
 
