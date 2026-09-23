@@ -6,7 +6,7 @@ description: "Planned post, with outline and open questions: the Terraform confi
 tags: [anchoring-ai, terraform, azure, infrastructure]
 series: "anchoring-ai"
 order: 6
-draft: false
+draft: true
 ---
 
 > **Status: Placeholder.** This post is planned. The outline and key concepts below describe what it will cover.

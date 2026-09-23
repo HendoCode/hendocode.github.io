@@ -6,7 +6,7 @@ description: "Planned post, with outline and open questions: implementing the S3
 tags: [anchoring-ai, rag, infrastructure]
 series: "anchoring-ai"
 order: 5
-draft: false
+draft: true
 ---
 
 > **Status: Placeholder.** This post is planned. The outline and key concepts below describe what it will cover.

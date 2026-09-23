@@ -6,7 +6,7 @@ description: "Planned post, with outline and a draft metrics inventory: which me
 tags: [anchoring-ai, observability, ai]
 series: "anchoring-ai"
 order: 8
-draft: false
+draft: true
 ---
 
 > **Status: Placeholder.** This post is planned. The outline and key concepts below describe what it will cover.

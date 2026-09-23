@@ -230,11 +230,11 @@ This first post covered the architecture at a high level. The next eight posts b
 | 02 | [From Text to Vectors](/posts/from-text-to-vectors/) | Deep dive on the data pipeline: synthetic generation, embeddings, pgvector setup, LangChain abstractions |
 | 03 | [The Interface Layer](/posts/the-interface-layer/) | MCP internals: tool schemas, the stdio transport, connecting Claude Desktop, reusability across teams |
 | 04 | [Run Anywhere](/posts/run-anywhere/) | Swapping LLM providers via `LLM_PROVIDER`; running entirely local with Ollama; cost and privacy trade-offs |
-| 05 | [Built to Last](/posts/built-to-last/) | Infrastructure as code: Terraform/OpenTofu on Azure, App Service, Entra Easy Auth pattern |
-| 06 | [What Should We Measure?](/posts/what-should-we-measure/) | LLM and RAG observability design: what metrics matter, what Grafana and OpenTelemetry bring |
-| 07 | [Wiring It Up](/posts/wiring-it-up/) | Implementing observability: OTel instrumentation, docker-compose additions, live Grafana dashboards |
+| 05 | Built to Last (planned) | Infrastructure as code: Terraform/OpenTofu on Azure, App Service, Entra Easy Auth pattern |
+| 06 | What Should We Measure? (planned) | LLM and RAG observability design: what metrics matter, what Grafana and OpenTelemetry bring |
+| 07 | Wiring It Up (planned) | Implementing observability: OTel instrumentation, docker-compose additions, live Grafana dashboards |
 | 08 | [Trust, but Verify](/posts/trust-but-verify/) | Detecting RAG degradation: embedding drift, retrieval quality signals, CSAT as ground truth, SLOs |
-| 09 | [What's Next](/posts/whats-next/) | The emerging landscape: GitAgent, LangGraph, Azure AI Foundry — and how this MCP-first approach stays durable |
+| 09 | [What's Next](/posts/whats-next/) | The emerging landscape: Coding agents, LangGraph, Azure AI Foundry — and how this MCP-first approach stays durable |
 
 ---
 

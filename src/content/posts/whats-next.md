@@ -1,8 +1,8 @@
 ---
 title: "What's Next"
-subtitle: "GitAgent, LangGraph, Azure AI Foundry — and why the MCP-first approach stays durable"
+subtitle: "Coding agents, LangGraph, Azure AI Foundry, and why the MCP-first approach stays durable"
 date: 2026-06-10
-description: "Structured draft: comparing the handcrafted MCP approach with the emerging agent landscape — GitAgent, LangGraph, Azure AI Foundry — and what to look for when choosing."
+description: "Structured draft: comparing the handcrafted MCP approach with the emerging agent landscape — coding agents, LangGraph, Azure AI Foundry — and what to look for when choosing."
 tags: [anchoring-ai, agents, ai]
 series: "anchoring-ai"
 order: 11
@@ -11,29 +11,26 @@ draft: false
 
 > **Status: Structured draft.** This post has a detailed outline and will be written after Posts 02–08 are complete.
 
----
 
 ## Thesis
 
 The system we built — a handcrafted MCP tool server with a RAG pipeline — is a deliberate choice for a specific context: multiple teams, multiple LLM vendors, a need for reuse across use cases, and a client not yet ready to standardize. Every design decision in this series has been shaped by those constraints.
 
-But the landscape is shifting fast. GitAgent-style coding agents, managed agent runtimes from Microsoft and OpenAI, and stateful orchestration frameworks like LangGraph are changing what "build your own" looks like — and what it competes with. This final post maps the next horizon: what these tools are, where they fit, and whether the work in this series still makes sense.
+But the landscape is shifting fast. Repository-aware coding agents, managed agent runtimes from Microsoft and OpenAI, and stateful orchestration frameworks like LangGraph are changing what "build your own" looks like — and what it competes with. This final post maps the next horizon: what these tools are, where they fit, and whether the work in this series still makes sense.
 
 The short answer: yes. Here's why.
 
----
 
 ## Key Concepts
 
 - **Agentic AI vs. RAG tools** — the shift from "query a tool and get an answer" to "agent plans and executes multi-step tasks autonomously"
-- **GitAgent / GitHub Copilot Workspace** — AI agents that operate on repositories: read code, write PRs, run tests, respond to issues; how they could use the MCP server as a data source *or* how a coding agent could evolve this codebase autonomously
+- **Coding agents (Claude Code, GitHub Copilot, Pi)** — AI agents that operate on repositories: read code, write PRs, run tests, respond to issues; how they could use the MCP server as a data source *or* how a coding agent could evolve this codebase autonomously
 - **LangGraph** — stateful, multi-step agent orchestration built on LangChain (already a dependency); when a graph of steps is the right abstraction over a simple RAG chain
 - **Azure AI Foundry Agents** — Microsoft's managed agent runtime; how it compares to self-hosted MCP; what "managed" gets you and what it costs
 - **OpenAI Assistants API** — the OpenAI-native alternative to MCP; threads, runs, and tool calls; trade-offs vs. the protocol-based approach
 - **MCP as the stable adapter layer** — regardless of which agent framework wins, MCP tools remain the interface; the work in this series doesn't get thrown away when the orchestration layer changes
 - **The consolidation question** — Northgate Federal Credit Union was going to consolidate GenAI efforts in 3–6 months; what criteria should drive that decision?
 
----
 
 ## Planned Outline
 
@@ -44,8 +41,8 @@ The short answer: yes. Here's why.
    - *"Flag any call where an agent promised something outside policy"* — needs reasoning across multiple retrieved documents
    - These tasks require an agent that can plan, retrieve, reason, and act — not just `rag_query()`
 
-3. **GitAgent and coding agents**
-   - What GitAgent-style tools do: repo-aware, code-gen, PR automation, issue triage
+3. **Coding agents**
+   - What repository-aware coding agents do: code-gen, PR automation, issue triage
    - How they could integrate with this MCP server: a coding agent queries call data to understand what's failing before opening a fix PR
    - The meta case: using Claude Code (or a similar coding agent) to evolve this codebase autonomously — we already did this during development
    - The implication: the MCP server is not just for call center supervisors; it's a data source for any AI agent that needs call center context
@@ -93,16 +90,8 @@ The short answer: yes. Here's why.
 
 9. **What to read next** — links to: LangGraph documentation, MCP spec, Ragas (RAG evaluation), Azure AI Foundry overview, OpenTelemetry Python SDK
 
----
 
 ## Code Changes for This Post
 
 None — this is a retrospective and forward-looking design post. No new code added.
 
----
-
-## Outstanding Questions / TBD
-
-- Include a live demo of adding a LangGraph workflow on top of the existing MCP tools?
-- Compare response quality: single RAG query vs. LangGraph multi-step agent on the same question?
-- Discuss Claude Code specifically as a GitAgent-style tool and how it was used to build this very codebase?

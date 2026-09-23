@@ -6,7 +6,7 @@ description: "Planned post, with outline and open questions: implementing the ob
 tags: [anchoring-ai, observability, ai]
 series: "anchoring-ai"
 order: 9
-draft: false
+draft: true
 ---
 
 > **Status: Placeholder.** This post is planned. The outline and key concepts below describe what it will cover.
