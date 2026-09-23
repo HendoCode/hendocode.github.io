@@ -6,7 +6,7 @@ description: "Structured draft: comparing the handcrafted MCP approach with the 
 tags: [anchoring-ai, agents, ai]
 series: "anchoring-ai"
 order: 11
-draft: false
+draft: true
 ---
 
 > **Status: Structured draft.** This post has a detailed outline and will be written after Posts 02–08 are complete.
