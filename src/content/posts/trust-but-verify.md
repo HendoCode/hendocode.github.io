@@ -11,7 +11,6 @@ draft: false
 
 > **Status: Structured draft.** This post has a detailed outline and will be written after Posts 02–07 are complete.
 
----
 
 ## Thesis
 
@@ -19,7 +18,6 @@ RAG systems degrade silently. Embeddings drift as language evolves, retrieval qu
 
 This post shows how to use the telemetry from Post 7 to detect degradation early — and how the CSAT scores we already collect become a lagging ground-truth signal for answer quality. The goal is to move from "we hope it's working" to "we know when it's not."
 
----
 
 ## Key Concepts
 
@@ -35,7 +33,6 @@ This post shows how to use the telemetry from Post 7 to detect degradation early
 - **Shadow mode evaluation** — running a new embedding model in parallel to compare retrieval quality before promoting it
 - **Human-in-the-loop checkpoints** — when to trigger a human review: retrieval score below threshold, new call category detected, embedding distribution shift
 
----
 
 ## Planned Outline
 
@@ -84,7 +81,6 @@ This post shows how to use the telemetry from Post 7 to detect degradation early
 
 10. **Shadow mode evaluation** — running a new embedding model (`text-embedding-3-large` or a future Ollama model) in a shadow collection; comparing retrieval scores before promoting
 
----
 
 ## Code Changes for This Post
 
@@ -93,11 +89,3 @@ This post shows how to use the telemetry from Post 7 to detect degradation early
 - New Grafana panel: CSAT score vs. RAG query volume (time series, JSON committed to `infra/grafana/`)
 - Grafana alert rule for retrieval score degradation (provisioned alert YAML)
 
----
-
-## Outstanding Questions / TBD
-
-- How to log query/answer pairs for the LLM-as-judge eval? Need a structured log format from Post 7 instrumentation.
-- Include Ragas (the open-source RAG eval framework) as an alternative to hand-rolled LLM-as-judge?
-- Show the HNSW index rebuild command for pgvector?
-- Discuss the annotation / human feedback loop as a path toward true supervised eval?
