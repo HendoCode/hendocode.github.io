@@ -233,8 +233,8 @@ This first post covered the architecture at a high level. The next eight posts b
 | 05 | Built to Last (planned) | Infrastructure as code: Terraform/OpenTofu on Azure, App Service, Entra Easy Auth pattern |
 | 06 | What Should We Measure? (planned) | LLM and RAG observability design: what metrics matter, what Grafana and OpenTelemetry bring |
 | 07 | Wiring It Up (planned) | Implementing observability: OTel instrumentation, docker-compose additions, live Grafana dashboards |
-| 08 | [Trust, but Verify](/posts/trust-but-verify/) | Detecting RAG degradation: embedding drift, retrieval quality signals, CSAT as ground truth, SLOs |
-| 09 | [What's Next](/posts/whats-next/) | The emerging landscape: Coding agents, LangGraph, Azure AI Foundry — and how this MCP-first approach stays durable |
+| 08 | Trust, but Verify (planned) | Detecting RAG degradation: embedding drift, retrieval quality signals, CSAT as ground truth, SLOs |
+| 09 | What's Next (planned) | The emerging landscape: Coding agents, LangGraph, Azure AI Foundry — and how this MCP-first approach stays durable |
 
 ---
 

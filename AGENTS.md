@@ -68,13 +68,10 @@ rewriting or "improving" it. Only the frontmatter, intra-series links (`../NN-sl
 `/posts/<slug>/`), and the deliberate deviations called out below differ from upstream; upstream
 also drops `prev_url`/`next_url` here because `posts/[slug].astro` renders its own series nav.
 
-**Do not reintroduce GitAgent or Lyzr references.** Upstream promotes GitAgent (`gitagent.sh`,
-the `open-gitagent` org), a Lyzr project; Lyzr publicly attacked LangChain and that partnership
-is over, so this repo removed every mention — `whats-next` says "coding agents" instead, and
-`agent-harness` is re-scoped to Stephen's real harness (Claude Code and the Pi coding agent,
-with firstmate orchestrating; spell it **Pi**, capital P, and **firstmate**, lowercase). That
-removal outranks the verbatim rule above: strip these again whenever re-copying from upstream.
-Gate with `grep -rniE "gitagent|open-gitagent|opengap|lyzr" src/ dist/`, which must be empty.
+Do not reintroduce references to gitagent.sh or the `open-gitagent` org. Upstream mentions
+it; this site refers to "coding agents" instead (see `whats-next` and `agent-harness`). This rule
+outranks the verbatim-copy rule above: strip these references again whenever re-copying from upstream.
+Gate with `grep -rniE "gitagent|open-gitagent|opengap" src/ dist/`, which must return nothing.
 
 Six of the twelve are upstream placeholders, and those are the six drafted posts listed in
 *Verifying changes* — hidden here so the site never leads with a stub, though upstream ships

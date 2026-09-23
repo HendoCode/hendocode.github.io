@@ -6,7 +6,7 @@ description: "Structured draft: validation strategies for RAG systems — embedd
 tags: [anchoring-ai, validation, rag]
 series: "anchoring-ai"
 order: 10
-draft: false
+draft: true
 ---
 
 > **Status: Structured draft.** This post has a detailed outline and will be written after Posts 02–07 are complete.
