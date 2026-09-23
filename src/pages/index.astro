@@ -9,11 +9,11 @@ const posts = await getCollection('posts', ({ data }) => !data.draft);
 const recentPosts = posts.sort(byDateDesc).slice(0, 5);
 ---
 
-<Layout title="HendoCode" description="Stephen Henderson's personal technical blog and portfolio">
+<Layout title="HendoCode" description="Stephen Henderson builds AI agent systems and writes about what he learns doing it: retrieval, MCP, multi-agent orchestration, evaluation.">
   <header class="page-header">
     <div class="eyebrow">Stephen Henderson</div>
     <h1>HendoCode</h1>
-    <p class="page-subtitle">Field SE, AI systems, San Antonio</p>
+    <p class="page-subtitle">AI agent systems, field SE, San Antonio</p>
   </header>
 
   <p>I build things and write about what I learn from doing it.</p>
