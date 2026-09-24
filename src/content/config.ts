@@ -7,6 +7,8 @@ const posts = defineCollection({
     /** Deck line under the h1; rendered with the shared .page-subtitle style. */
     subtitle: z.string().optional(),
     date: z.coerce.date(),
+    /** Last substantive revision; renders as "Updated <date>" in the post byline. */
+    updated: z.coerce.date().optional(),
     description: z.string(),
     tags: z.array(z.string()).optional(),
     series: z.string().optional(),

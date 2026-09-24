@@ -23,6 +23,9 @@ const seriesPosts = post.data.series
 const wordCount = post.body.split(/\s+/).filter(Boolean).length;
 const readingTime = Math.ceil(wordCount / 200);
 const formattedDate = new Date(post.data.date).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+const formattedUpdated = post.data.updated
+  ? new Date(post.data.updated).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })
+  : null;
 ---
 
 <Layout
@@ -35,7 +38,7 @@ const formattedDate = new Date(post.data.date).toLocaleDateString('en-US', { yea
       <div class="eyebrow">{post.data.series || 'HendoCode'}</div>
       <h1>{post.data.title}</h1>
       {post.data.subtitle && <p class="page-subtitle">{post.data.subtitle}</p>}
-      <div class="byline">{formattedDate} &middot; {readingTime} min read</div>
+      <div class="byline">{formattedDate} &middot; {readingTime} min read{formattedUpdated && <span> &middot; Updated {formattedUpdated}</span>}</div>
       {post.data.tags && post.data.tags.length > 0 && (
         <div class="post-tags">
           {post.data.tags.map(tag => (

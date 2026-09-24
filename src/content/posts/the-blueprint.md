@@ -2,6 +2,7 @@
 title: "The Blueprint"
 subtitle: "Designing a production RAG system from the ground up"
 date: 2026-06-09
+updated: 2026-09-24
 description: "Architecture overview of a production RAG system behind an MCP server: the C4 context, container and component views, plus the query and ingest sequence flows."
 tags: [anchoring-ai, architecture, rag, mcp]
 series: "anchoring-ai"
@@ -11,9 +12,9 @@ draft: false
 
 There's a question that haunts every call center manager: "What's actually going on out there?"
 
-The data exists. Hundreds of call transcripts, recorded and transcribed every week. CSAT surveys from members who bothered to respond. Agent notes. Outcome codes. But turning that pile of raw data into an answer to "show me all fraud disputes that escalated last month" requires someone to actually dig through it — manually. Keyword searching, listening to recordings, building mental models across dozens of calls. It's slow, it misses context, and it doesn't scale.
+The data exists. Hundreds of call transcripts, recorded and transcribed every week. CSAT surveys from members who bothered to respond. Agent notes. Outcome codes. But turning that pile of raw data into an answer to "what are members saying on fraud dispute calls that go badly?" requires someone to actually dig through it — manually. Keyword searching, listening to recordings, building mental models across dozens of calls. It's slow, it misses context, and it doesn't scale.
 
-This series is about building a system that makes that question answerable in seconds, using natural language. Not as a demo, not as a tutorial with 10 rows of fake data — but as a real, deployable system with production infrastructure, swap-friendly LLM providers, and the kind of observability that lets you trust what you've built.
+This series is about building a system that makes that question answerable in seconds, using natural language, with the pieces a real deployment needs: a shared service boundary, swappable LLM providers, and infrastructure as code.
 
 ---
 
@@ -21,11 +22,13 @@ This series is about building a system that makes that question answerable in se
 
 The system documented in this series grew out of a consulting engagement with a financial institution — let's call them Northgate Federal Credit Union, a name I've invented. They had a problem familiar to any enterprise mid-AI-adoption: multiple teams independently using Claude, OpenAI, and Gemini, no shared infrastructure, and no way to reuse the work across teams.
 
-The call center team wanted to query call recordings and transcripts in natural language. The compliance team wanted to run ad-hoc CSAT analyses. The operations team had something different in mind. All of them were going to end up building separate pipelines to the same underlying data.
+Several teams were independently building AI features against the same call and survey data, each heading toward its own pipeline to it.
 
 The design constraint that shaped everything: **build one thing that all of them can use.** That meant the core retrieval and data access layer needed to be a shared service, not a team-specific application. MCP — the Model Context Protocol — turned out to be the right abstraction for that.
 
 This repo (and this series) uses fully synthetic data. No real member information, no real call recordings, no PII. The architecture decisions are real. The code is real. The numbers are fake.
+
+The code behind this series was built between April and June 2026. The first four write-ups were published together once it was working.
 
 ---
 
@@ -83,7 +86,7 @@ flowchart LR
 
 ### Containers
 
-Zooming in, the system is six containers. Two are live data paths; one is a future-planned external source.
+Zooming in, there are three containers: one Python process (the MCP server, which runs the RAG pipeline and embeddings module in-process), PostgreSQL with pgvector, and the JSON data files, plus the external LLM provider. The diagram also draws the pipeline and embeddings module as separate boxes because the component boundary matters more than the process boundary for what follows.
 
 ```mermaid
 flowchart TB
@@ -99,7 +102,7 @@ flowchart TB
 
     llmProvider["LLM Provider — OpenAI or Ollama"]
 
-    supervisor -->|"MCP stdio / HTTPS"| mcpServer
+    supervisor -->|"MCP stdio (HTTPS planned)"| mcpServer
     mcpServer -->|"rag_query()"| ragPipeline
     mcpServer -->|"reads csat.json directly"| dataFiles
     ragPipeline -->|"get_vector_store()"| embedModule
@@ -120,12 +123,12 @@ The MCP server is a single Python process. `server.py` is the async entry point;
 
 ```mermaid
 flowchart LR
-    subgraph server ["mcp/server.py"]
+    subgraph server ["ccai_mcp/server.py"]
         listTools["list_tools handler"]
         callTool["call_tool handler"]
     end
 
-    subgraph tools ["mcp/tools.py"]
+    subgraph tools ["ccai_mcp/tools.py"]
         searchTool["search_transcripts"]
         summaryTool["get_call_summary"]
         csatTool["query_csat"]
@@ -138,7 +141,7 @@ flowchart LR
     callTool -->|"get_call_summary"| summaryTool
     callTool -->|"query_csat"| csatTool
     searchTool -->|"rag_query(query, k)"| ragPipeline
-    summaryTool -->|"retrieve then rag_query"| ragPipeline
+    summaryTool -->|"retrieve then summarize"| ragPipeline
     csatTool -->|"bypasses RAG entirely"| dataFiles
 ```
 
@@ -152,7 +155,7 @@ Architecture diagrams show structure. Sequence diagrams show what actually happe
 
 ### Flow 1 — A Single MCP Query
 
-When a supervisor types "show me fraud disputes from last week" into Claude Desktop, here's the full path:
+When a supervisor types "fraud disputes where the member was frustrated" into Claude Desktop, here's the full path:
 
 ```mermaid
 sequenceDiagram
@@ -165,7 +168,7 @@ sequenceDiagram
     participant PG as pgvector
     participant LLM as LLM Provider
 
-    Supervisor->>CD: show me fraud disputes from last week
+    Supervisor->>CD: fraud disputes where the member was frustrated
     CD->>MCP: call_tool search_transcripts query k=5
     MCP->>Tools: search_transcripts(query, k=5)
     Tools->>RAG: rag_query(query, k=5)
@@ -175,7 +178,7 @@ sequenceDiagram
     LLM-->>RAG: query embedding
     RAG->>PG: similarity_search(embedding, k=5)
     PG-->>RAG: top-5 LangChain Documents
-    RAG->>LLM: ChatOpenAI.invoke(prompt + retrieved context)
+    RAG->>LLM: llm.invoke(prompt + retrieved context)
     LLM-->>RAG: grounded answer text
     RAG-->>Tools: answer string
     Tools-->>MCP: TextContent(answer)
@@ -183,7 +186,7 @@ sequenceDiagram
     CD-->>Supervisor: displays answer
 ```
 
-*Figure 4 — MCP query flow. The round-trip involves two LLM calls: one to embed the query (fast, cheap), one to synthesize the answer (slower, more expensive). Both happen over the same provider — swap the `LLM_PROVIDER` env var and both switch simultaneously.*
+*Figure 4 — MCP query flow. The round-trip involves two model calls: one embedding call to vectorize the query (fast, cheap) and one chat completion to synthesize the answer (slower, more expensive). Both happen over the same provider — swap the `LLM_PROVIDER` env var and both switch simultaneously.*
 
 ---
 
@@ -209,11 +212,9 @@ sequenceDiagram
     Embed->>PG: initialize schema and pgvector extension
     PG-->>Embed: ready
     CLI->>Embed: vector_store.add_documents(docs)
-    loop for each document
-        Embed->>LLM: embed page_content
-        LLM-->>Embed: 1536-dim float vector
-        Embed->>PG: INSERT embedding and JSONB metadata
-    end
+    Embed->>LLM: batch embed page_content
+    LLM-->>Embed: vectors (1536-dim OpenAI, 768-dim nomic)
+    Embed->>PG: INSERT embedding and JSONB metadata
     PG-->>CLI: 150 documents stored
 ```
 
@@ -255,16 +256,19 @@ cp .env.example .env
 # Edit .env: set OPENAI_API_KEY (or set LLM_PROVIDER=ollama for no API key)
 
 # 4. Generate synthetic data
-python data/synthetic/generate_data.py
+uv run python data/synthetic/generate_data.py
+
+# 4a. Optional: drop any previously ingested data (run this if you've ingested before)
+uv run python -m rag.pipeline --reset
 
 # 5. Embed and store in pgvector
-python -m rag.pipeline --ingest
+uv run python -m rag.pipeline --ingest
 
 # 6. Test a query end-to-end
-python -m rag.pipeline --query "fraud disputes from last week"
+uv run python -m rag.pipeline --query "fraud disputes where the member was frustrated"
 
-# 7. Start the MCP server (connect with Claude Desktop)
-python -m mcp.server
+# 7. Start the MCP server (normally Claude Desktop starts this for you; see Post 3)
+uv run python -m ccai_mcp.server
 ```
 
 Post 2 goes much deeper on what each of these steps actually does — the data structures, the LangChain abstractions, the SQL that pgvector generates under the hood.

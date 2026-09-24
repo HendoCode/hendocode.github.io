@@ -96,6 +96,11 @@ Every listing sorts through `src/lib/posts.ts` (`byDateDesc`/`byDateAsc` — dat
 use it in any new listing page instead of writing a fresh comparator, or same-date posts come
 out in whatever order the content loader returned them.
 
+`updated` (optional, schema in `src/content/config.ts`) marks a substantive revision; when set,
+`posts/[slug].astro` appends `· Updated <Month D, YYYY>` to the byline. Only the four live
+anchoring-ai posts carry it — don't add it to drafts or spread the `date` values (the upstream
+git history is public and dates stay honest; see the 2026-09-24 accuracy handoff, B6).
+
 ## Maintaining this file
 
 Keep this file for knowledge useful to almost every future agent session in this project.
