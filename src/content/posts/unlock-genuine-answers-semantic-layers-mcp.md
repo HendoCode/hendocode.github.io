@@ -70,11 +70,15 @@ Balance is worse, because the sign changes. A checking balance is an asset to th
 
 LCV and LTV sound alike when spoken. Marketing means lifetime customer value, which is a convention and exists nowhere as a column. Underwriting means loan-to-value, which is a fact: Allison's is 60.42% and the portfolio average is 77.63%. If a model asked for the top members by LCV routes to loan-to-value, it returns the members carrying the most risk, sorted as though they were the most valuable.
 
-Limit means a HELOC's $167,007.26 and a card's $10,149.14, which are credit capacity, and it also means Allison's $1,811.83 auto deductible, which is an insurance coverage limit and has nothing to do with credit.
+The remaining three do less damage but follow the same pattern.
 
-Premium means her $3,266.12 annual insurance premium ($272.18 a month), and it also means the 1.170% margin on her HELOC, which is a rate premium over an index.
+| Word | One meaning | Another meaning |
+|---|---|---|
+| Limit | Credit capacity: a HELOC's $167,007.26 and a card's $10,149.14 | Coverage: Allison's $1,811.83 auto deductible, which has nothing to do with credit |
+| Premium | Her $3,266.12 annual insurance premium ($272.18 a month) | The 1.170% margin on her HELOC, a rate premium over an index |
+| Lock | The mortgage pipeline's rate lock: 500 rows, 142 exercised and 183 expired | A fraud department saying "we locked her account," a call outcome with no table behind it |
 
-Lock means the mortgage pipeline's rate lock, of which there are 500 rows, 142 exercised and 183 expired. It also means a fraud department saying "we locked her account," which is a call outcome with no table behind it. A count of locks this quarter answered from the wrong source is off by the entire fraud workload.
+A count of locks this quarter answered from the wrong source is off by the entire fraud workload.
 
 None of this is a defect in the synthetic data. Real credit unions store these figures in separate places, and a BI tool with a flat list of columns invites `SUM(balance)`.
 
@@ -82,7 +86,17 @@ None of this is a defect in the synthetic data. Real credit unions store these f
 
 The warehouse layer is built with dbt, and it turns those 21 normalized tables into a star of fact tables and conformed dimensions.
 
-The facts are `f_interaction` (one row per call, 1,250 rows), `f_csat` (one per survey, 943), `f_account_snapshot` (one per account per snapshot date, 1,400 at 2026-08-31), `f_transaction` (one per ledger entry, 25,000), `f_rate_lock` (500), and `f_rate` (posted product rates, 126). A bridge table, `f_interaction_account` with 1,383 rows, handles calls that touch more than one account. The dimensions include `d_member`, `d_product`, `d_date`, `d_staff`, `d_team`, `d_category`, and `d_household`. Two of them are deliberate snowflakes: `d_account` points to `d_product`, so the line-of-business discriminator lives in exactly one place, and `d_staff` points to `d_team`.
+| Fact table | One row per | Rows |
+|---|---|---|
+| `f_interaction` | call | 1,250 |
+| `f_csat` | survey response | 943 |
+| `f_account_snapshot` | account per snapshot date | 1,400 (at 2026-08-31) |
+| `f_transaction` | ledger entry | 25,000 |
+| `f_rate_lock` | rate lock | 500 |
+| `f_rate` | posted product rate | 126 |
+| `f_interaction_account` (bridge) | call and account it touched, for calls that touch more than one account | 1,383 |
+
+The dimensions include `d_member`, `d_product`, `d_date`, `d_staff`, `d_team`, `d_category`, and `d_household`. Two of them are deliberate snowflakes: `d_account` points to `d_product`, so the line-of-business discriminator lives in exactly one place, and `d_staff` points to `d_team`.
 
 The grain is kept strict. `f_account_snapshot` holds stocks, the as-of balances, which are semi-additive and never summed across dates. `f_transaction` holds flows, signed ledger entries with credits positive and debits negative. "Principal paid this year" comes from the flow table and never from the snapshot. Average daily balance is derived from transactions and is not stored anywhere.
 
@@ -172,7 +186,22 @@ uv run --group dbt mf query --metrics loan_to_value,member_lifetime_value --deci
 | `loan_to_value` (underwriting risk, a fact) | 77.63 |
 | `member_lifetime_value` (marketing convention) | $760,635.25 |
 
-Here is how the $760,635.25 comes about. Over the trailing six months the book earned $16,797,361.67 in relationship revenue, made up of $8,553,593.77 in fees and $8,243,767.90 in interest income. Spread across the 530 members with ledger activity in that window, that is about $31,693 each. Doubling it annualizes the six months to about $63,386 a year, and multiplying by an assumed twelve-year relationship gives the table's figure. The first two steps come from the ledger. The doubling and the twelve years are choices, and they sit in one line of `metrics.yml`, so anyone who thinks the tenure should be eight years can change a single number in a pull request and see what happens. That size comes from how the synthetic ledger was generated. The formula is what the example shows, and the magnitude isn't meant to describe a real credit union.
+### How the $760,635.25 comes about
+
+```
+LCV = (fees + interest income) ÷ active members × 2 × 12
+```
+
+| Step | Figure | Source |
+|---|---|---|
+| Fees, trailing six months | $8,553,593.77 | ledger |
+| Interest income, same window | $8,243,767.90 | ledger |
+| Relationship revenue | $16,797,361.67 | ledger |
+| Per active member (530) | $31,693 | ledger |
+| Annualized (× 2) | $63,386 | declared in `metrics.yml` |
+| Assumed twelve-year tenure (× 12) | $760,635.25 | declared in `metrics.yml` |
+
+The first four rows come from the ledger. The last two are declared in one line of `metrics.yml`, so anyone who thinks the tenure should be eight years can change a single number in a pull request and see what happens. The size of the final figure comes from how the synthetic ledger was generated. The formula is what the example shows, and the magnitude isn't meant to describe a real credit union.
 
 Two more cases I computed directly from the seed data. "What does our mortgage book cost?" is a weighted question, and a plain average of note rates gives 6.5888. `weighted_mortgage_portfolio_rate` is declared as a ratio of numerator to denominator, note rate times principal over principal across the 170 mortgages, and gives 6.5695 on $62,977,671.64 in principal. Declaring the weighting once means nobody has to remember it. And of 340 cards, 59 sit on a 0% introductory rate. Average purchase APR across all cards is 18.1192, excluding the teasers it is 21.9236, and cash-advance APR averages 24.428. One card portfolio yields three defensible figures depending on the question.
 
@@ -180,7 +209,15 @@ Two more cases I computed directly from the seed data. "What does our mortgage b
 
 Everything so far was the analytics side. The other half is a GenAI client speaking MCP to the server. `ccai_mcp/server.py` registers five tools.
 
-Three of them came first, and they are the ones from the proof of concept. `search_transcripts` runs a vector search over call transcripts. `get_call_summary` pulls one call. `query_csat` reads satisfaction scores from Postgres (`f_csat`), with filters for score range and category. They are retrieval tools, and they are honest about what they do.
+| Tool | What it does | Added |
+|---|---|---|
+| `search_transcripts` | Vector search over call transcripts | proof of concept |
+| `get_call_summary` | Pulls the summary of one call | proof of concept |
+| `query_csat` | Reads satisfaction scores from Postgres (`f_csat`), filtered by score range and category | proof of concept |
+| `query_metric` | Runs declared metrics through the semantic layer and returns the table with the generated SQL | semantic layer |
+| `ask_the_analyst` | Resolves a plain-English question to declared metrics and answers with the SQL attached | semantic layer |
+
+The first three are retrieval tools from the proof of concept, and they are honest about what they do.
 
 Here is what that honesty looks like. Asked to find calls where a member asked what interest rate they were paying, `search_transcripts` surfaces CALL-00047. Michael Freeman (MBR-000239) asked what interest rate he was currently paying, and the agent on the call told him his annual percentage yield was 5.209%. The APY is the rate he earns. The transcript reproduces the ambiguity faithfully, and the retrieval tool quotes it faithfully. Only a declared metric knows which number "interest rate" should have routed to.
 
@@ -196,17 +233,19 @@ Ask any of those three what the average interest rate is, or what fee revenue lo
 
 I'm still working on the client-side transcripts for these two tools, so what follows describes what they are built to return.
 
-Asked "What's our average interest rate?", the answer is the five declared metrics from the earlier table, each with its name and description, and the SQL that produced them. There is no single average to report, and the answer says so.
-
-Asked "What are our members' total balances, net of what they owe us?", the phrase "net of what they owe us" resolves to `net_member_liquidity`. The answer is $35,932,168.86, with the formula `banking_available_balance − credit_card_outstanding` quoted alongside. A query built from a bare `SUM(balance)` lands on $40,641,908.52 instead.
-
-Asked "What's our LCV?", the word resolves to `member_lifetime_value` and its declared formula, and `loan_to_value` is named as a separate metric that is available if asked for.
+| Question | Resolves to | The answer |
+|---|---|---|
+| "What's our average interest rate?" | the five declared rate metrics from the earlier table | Each metric with its name and description, and the SQL behind them. There is no single average to report, and the answer says so. |
+| "What are our members' total balances, net of what they owe us?" | `net_member_liquidity` | $35,932,168.86, with the formula `banking_available_balance − credit_card_outstanding` quoted alongside. A bare `SUM(balance)` lands on $40,641,908.52 instead. |
+| "What's our LCV?" | `member_lifetime_value` | The declared formula, with `loan_to_value` named as a separate metric that is available if asked for. |
 
 What moves in these exchanges is where the definitions live. The model reads a committed YAML file, and its answer cites the metric it used. When someone on a call floor asks where a number came from, the answer is a metric name and a line in a file that anyone can read.
 
 ## Recommendation
 
-If an LLM is going to answer questions about numbers, put the definitions in a file it has to cite, and keep that file in version control. That is the recommendation I would give a team facing the situation I was in, and the repository is the evidence for it.
+> If an LLM is going to answer questions about numbers, put the definitions in a file it has to cite, and keep that file in version control.
+
+That is the recommendation I would give a team facing the situation I was in, and the repository is the evidence for it.
 
 Some limits are worth stating. The data is synthetic and small, and 700 members will never surface the problems that 700,000 would. The real deployment doesn't have a semantic layer yet, so I can't report what one changes for the call-center workers and team leads whose trust was the real problem there. What I can show is that on this data each ambiguous word resolves to named, reproducible numbers, and that an MCP client can be handed those numbers along with the SQL behind them. I'm continuing to build out the MCP side, and the repository is where the current state lives.
 
