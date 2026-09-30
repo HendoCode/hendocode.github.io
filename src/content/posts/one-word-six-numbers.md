@@ -1,5 +1,5 @@
 ---
-title: "One Word, Six Numbers"
+title: "Unlock Genuine Answers with Semantic Layers and MCP"
 subtitle: "What a semantic layer gave an MCP server to be accurate about"
 date: 2026-09-29
 description: "How a declarative semantic layer turns six colliding meanings of 'interest rate' and 'balance' into named, cited, reproducible metrics — and lets an MCP server answer them accurately, with the SQL attached."
@@ -24,7 +24,7 @@ Every number in that table is correct. Her card is on a 0% introductory purchase
 
 This article walks from the database that stores those numbers to the layer that names them, and then to an MCP server that lets an LLM ask for them by name. It follows a demo I built, and the repository is public: [github.com/HendoCode/contact-center-ai](https://github.com/HendoCode/contact-center-ai). All data is synthetic, generated deterministically with seed 42, so the numbers below can be reproduced by running the generator.
 
-## Where this started
+## Background
 
 I built an MCP server for a financial institution's contact center. It began as a proof of concept. Supervisors could search call transcripts, pull a summary of a single call, and look at CSAT survey scores, all backed by a RAG pipeline on pgvector. For those three jobs it worked well, because the questions were about calls: find the ones where the member mentioned fraud, summarize this one, show me the low scores.
 
@@ -36,7 +36,7 @@ The real deployment doesn't have a semantic layer yet. This project is where I w
 
 Meridian Valley is sized to run on a laptop: 700 members, 1,400 accounts, 1,250 call interactions, 943 CSAT responses, 25,000 ledger transactions, and 500 mortgage rate locks. It is modeled the way real credit unions store things, which is where the trouble starts.
 
-## The OLTP schema: no column called balance
+## The transactional data model
 
 The transactional layer has 21 tables covering members, households, staff, products, accounts, calls, surveys, ledger transactions, and rate locks. The account table is a shared core, and each line of business hangs its own typed child table off it. That pattern is called Table-Per-Type.
 
@@ -60,7 +60,7 @@ FROM member WHERE member_id = 1;
 
 Her four seeded calls are CALL-00260 (online banking), CALL-00421 (loan inquiry), CALL-00791 (insurance service), and CALL-01089 (investment review). We will come back to that last one.
 
-## Where one word splits
+## Ambiguous terms
 
 Six words in this domain carry two or more meanings that live in different physical columns. I'll take them in order of how much damage they do.
 
@@ -78,7 +78,7 @@ Lock means the mortgage pipeline's rate lock, of which there are 500 rows, 142 e
 
 None of this is a defect in the synthetic data. Real credit unions store these figures in separate places, and a BI tool with a flat list of columns invites `SUM(balance)`.
 
-## The star schema: passing the ambiguity up
+## The star schema
 
 The warehouse layer is built with dbt, and it turns those 21 normalized tables into a star of fact tables and conformed dimensions.
 
@@ -103,7 +103,7 @@ That layer is dbt with MetricFlow: open source, runs locally, and declared in YA
 Here is what four of those look like in the file:
 
 ```yaml
-### "interest rate": every declared answer has a name and a filter
+### Interest rate
 - name: average_mortgage_note_rate      # what she PAYS on a first-lien, fixed
   type: simple
   type_params: { measure: mortgage_note_rate }
@@ -114,13 +114,13 @@ Here is what four of those look like in the file:
   type_params: { measure: deposit_apy }
   filter: "{{ Dimension('product__lob') }} = 'banking'"
 
-### "balance": the sign convention, written as a formula
+### Balance
 - name: net_member_liquidity            # asset MINUS liability
   type: derived
   type_params:
     expr: banking_available_balance - credit_card_outstanding
 
-### "LCV": a convention with its parameters, declared once
+### Lifetime value vs loan-to-value
 - name: member_lifetime_value
   type: derived
   type_params:
@@ -176,7 +176,7 @@ The lifetime value is $16,797,361.67 in relationship revenue ($8,553,593.77 in f
 
 Two more cases I computed directly from the seed data. "What does our mortgage book cost?" is a weighted question, and a plain average of note rates gives 6.5888. `weighted_mortgage_portfolio_rate` is declared as a ratio of numerator to denominator, note rate times principal over principal across the 170 mortgages, and gives 6.5695 on $62,977,671.64 in principal. Declaring the weighting once means nobody has to remember it. And of 340 cards, 59 sit on a 0% introductory rate. Average purchase APR across all cards is 18.1192, excluding the teasers it is 21.9236, and cash-advance APR averages 24.428. One card portfolio yields three defensible figures depending on the question.
 
-## The agent surface
+## The MCP server
 
 Everything so far was the analytics side. The other half is a GenAI client speaking MCP to the server. `ccai_mcp/server.py` registers five tools.
 
@@ -204,7 +204,7 @@ Asked "What's our LCV?", the word resolves to `member_lifetime_value` and its de
 
 What moves in these exchanges is where the definitions live. The model reads a committed YAML file, and its answer cites the metric it used. When someone on a call floor asks where a number came from, the answer is a metric name and a line in a file that anyone can read.
 
-## What I'd do with this
+## Recommendation
 
 If an LLM is going to answer questions about numbers, put the definitions in a file it has to cite, and keep that file in version control. That is the recommendation I would give a team facing the situation I was in, and the repository is the evidence for it.
 
