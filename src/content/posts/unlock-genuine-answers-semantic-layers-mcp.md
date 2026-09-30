@@ -1,13 +1,13 @@
 ---
-title: "Unlock Genuine Answers with Semantic Layers and MCP"
-subtitle: "What a semantic layer gave an MCP server to be accurate about"
+title: "What a Semantic Layer Gave an MCP Server to Be Accurate About"
+subtitle: "One credit union member, six interest rates, and a semantic layer that names each one"
 date: 2026-09-29
 description: "How a declarative semantic layer turns six colliding meanings of 'interest rate' and 'balance' into named, cited, reproducible metrics — and lets an MCP server answer them accurately, with the SQL attached."
 tags: [semantic-layer, mcp, agents, ai]
 draft: false
 ---
 
-Allison Hill is member 1 at Meridian Valley Credit Union, a fictional credit union I built for this project. She lives in Ohio, her credit band is good, and she holds one account in each of the six lines of business: checking, mortgage, HELOC, credit card, car insurance, and an IRA. Suppose a supervisor asks what interest rate Allison has. The database holds six answers.
+Allison Hill is member 1 at Meridian Valley Credit Union, a fictional credit union I built for this project. She lives in Ohio, her credit band is good, and she holds one account in each of the six lines of business: checking, mortgage, HELOC, credit card, car insurance, and an IRA. Suppose a supervisor asks what interest rate Allison has. Five of those accounts carry a rate, and the card carries two, so the database holds six answers.
 
 | Line of business | Account | Rate on file |
 |---|---|---|
@@ -48,7 +48,7 @@ The schema has no `balance` column and no `interest_rate` column anywhere. What 
 - A checking account stores `apy`, the one rate the member earns instead of pays.
 - An investment account stores `ytd_return_pct`.
 
-Six tables and six columns. Nothing in the schema is wrong. Each column is named for what it holds, and the trouble begins when someone asks for "the rate" in English.
+Five of the six child tables carry a rate, in seven columns. The sixth, insurance, carries premiums and coverage limits instead. Nothing in the schema is wrong. Each column is named for what it holds, and the trouble begins when someone asks for "the rate" in English.
 
 Pulling the featured member is one query:
 
@@ -64,7 +64,7 @@ Her four seeded calls are CALL-00260 (online banking), CALL-00421 (loan inquiry)
 
 Six words in this domain carry two or more meanings that live in different physical columns. I'll take them in order of how much damage they do.
 
-Interest rate is the one we started with. Portfolio-wide, the same word resolves to an average mortgage note rate of 6.5888%, an average card purchase APR of 18.1192%, an average deposit APY of 1.9373%, an average HELOC rate of 10.1101%, and an average investment return of 7.4710%. That is five official numbers from one question.
+Interest rate is the one we started with. Portfolio-wide, the same word resolves to an average mortgage note rate of 6.5888%, an average card purchase APR of 18.1192%, an average deposit APY of 1.9373%, an average HELOC rate of 10.1101%, and an average investment return of 7.4710%. That is five averages from one question, before counting the weighted mortgage rate and the cash-advance APR.
 
 Balance is worse, because the sign changes. A checking balance is an asset to the member and a card balance is a liability. Summing "balance" across banking and card accounts gives $40,641,908.52, which is true of nothing. It adds $38,287,038.69 in available banking balances to $2,354,869.83 in card debt. The figure that answers the question a supervisor probably meant, what members hold net of what they owe on cards, is $35,932,168.86.
 
@@ -172,7 +172,7 @@ uv run --group dbt mf query --metrics loan_to_value,member_lifetime_value --deci
 | `loan_to_value` (underwriting risk, a fact) | 77.63 |
 | `member_lifetime_value` (marketing convention) | $760,635.25 |
 
-The lifetime value is $16,797,361.67 in relationship revenue ($8,553,593.77 in fees plus $8,243,767.90 in interest), times 24, divided by 530 active members. Under separate names, sorting members by LCV can't turn into sorting them by LTV.
+Here is how the $760,635.25 comes about. Over the trailing six months the book earned $16,797,361.67 in relationship revenue, made up of $8,553,593.77 in fees and $8,243,767.90 in interest income. Spread across the 530 members with ledger activity in that window, that is about $31,693 each. Doubling it annualizes the six months to about $63,386 a year, and multiplying by an assumed twelve-year relationship gives the table's figure. The first two steps come from the ledger. The doubling and the twelve years are choices, and they sit in one line of `metrics.yml`, so anyone who thinks the tenure should be eight years can change a single number in a pull request and see what happens. That size comes from how the synthetic ledger was generated. The formula is what the example shows, and the magnitude isn't meant to describe a real credit union.
 
 Two more cases I computed directly from the seed data. "What does our mortgage book cost?" is a weighted question, and a plain average of note rates gives 6.5888. `weighted_mortgage_portfolio_rate` is declared as a ratio of numerator to denominator, note rate times principal over principal across the 170 mortgages, and gives 6.5695 on $62,977,671.64 in principal. Declaring the weighting once means nobody has to remember it. And of 340 cards, 59 sit on a 0% introductory rate. Average purchase APR across all cards is 18.1192, excluding the teasers it is 21.9236, and cash-advance APR averages 24.428. One card portfolio yields three defensible figures depending on the question.
 
