@@ -27,8 +27,9 @@ as this repo's own extension (the reference ships light-only).
 
 Two known deliberate deviations, both because this repo's brief outranks the reference on
 structure: content measure is **680px** (reference is 720px), and the reference's Google
-Analytics tag, Mermaid loader, `scroll-behavior: smooth` and `0.15s` hover transitions are
-**not** carried over.
+Analytics tag, `scroll-behavior: smooth` and `0.15s` hover transitions are **not** carried
+over. The reference's Mermaid loader is carried over, in a page-conditional form (see
+*Mermaid diagrams* below).
 
 ## Structural constraints for this site
 
@@ -82,10 +83,15 @@ ones from live posts are plain text with no link, and `the-blueprint`'s series t
 renumbered the series mid-flight, so a few in-body cross-references ("Post 8", post 01's "What's
 Coming" table) cite stale numbers; that drift is upstream's and was left as authored.
 
-`the-blueprint` carries five ` ```mermaid ` fences. This site has no Mermaid loader (see the
-deliberate deviations above), so Shiki emits them as unhighlighted code and the diagrams read as
-source text. That is the accepted state — wiring a Mermaid CDN script into `Layout.astro` is a
-product decision, not a build fix.
+## Mermaid diagrams
+
+`the-blueprint` carries five ` ```mermaid ` fences. `src/lib/remark-mermaid.mjs` (a remark plugin
+registered in `astro.config.mjs`) rewrites them to `<pre class="mermaid">` before Shiki sees them.
+An `is:inline` script at the end of `Layout.astro` loads mermaid@10 from jsdelivr, only on pages
+that contain one, with theme `neutral` (`dark` in dark mode, re-rendered when the toggle flips).
+Panel styling is `pre.mermaid` in the global style block. Mermaid renders in the browser, so
+`npm run build` output holds diagram source, not SVG: check rendering in `npm run dev` or
+`preview`. Keep the element a `<pre>`, which leaves the source readable if the CDN script fails.
 
 ## Post ordering: `subtitle`, `order`, and src/lib/posts.ts
 
