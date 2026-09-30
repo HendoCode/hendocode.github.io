@@ -1,6 +1,6 @@
 ---
-title: "What a Semantic Layer Gave an MCP Server to Be Accurate About"
-subtitle: "One credit union member, six interest rates, and a semantic layer that names each one"
+title: "Six Interest Rates for One Member"
+subtitle: "A semantic layer gives an MCP server definitions to answer from"
 date: 2026-09-29
 description: "How a declarative semantic layer turns six colliding meanings of 'interest rate' and 'balance' into named, cited, reproducible metrics — and lets an MCP server answer them accurately, with the SQL attached."
 tags: [semantic-layer, mcp, agents, ai]
